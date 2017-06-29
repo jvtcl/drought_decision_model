@@ -405,6 +405,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
               p("You didn't get much rain this summer! In the graph below you can see how much
                 it has rained since you decided whether or not to purchase hay (July and August). 
                 The grey bars indicate old/past rainfall, while the dark blue bars indicate new rainfall"),
+              p(ForageValueAllp),
               plotOutput(paste0("rainGraphSep", name)),
               if(purchaseInsurance == TRUE) {
                 p("Since you have rainfall insurance, 
@@ -450,6 +451,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
               p("You got sufficient rain this summer, so your grass should be in good shape for your cattle! 
                 In the graph below you can see how much
                 it has rained since you decided whether or not to purchase hay (July and August)."),
+              p(ForageValueAllp),
               plotOutput(paste0("rainGraphSep", name)),
               if(purchaseInsurance == TRUE) {
                 h4("Rainfall was close to or above normal levels during the growing season. This means that for the months most important for grass growth (May-August), rainfall was at least 90% of the average.")
