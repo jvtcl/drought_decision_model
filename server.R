@@ -4,12 +4,12 @@ function(input, output, session) {
   
   ## Calcualte indemnities for all years of the simulation
   indem <- lapply(startYear:(startYear + simLength - 1), function(x){
-    with(simRuns, shinyInsMat(yy = x, clv = clv, acres = acres,
+    with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                               pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
   })
   
   indemprac <- lapply(startYearprac:(startYearprac + practiceLength - 1), function(x){
-    with(practiceRuns, shinyInsMat(yy = x, clv = clv, acres = acres,
+    with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                    pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
   })
   
@@ -95,12 +95,12 @@ function(input, output, session) {
       purchaseInsurance <<- TRUE
       print("its T")
       indem <<- lapply(startYear:(startYear + simLength - 1), function(x){
-        with(simRuns, shinyInsMat(yy = x, clv = clv, acres = acres,
+        with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                   pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
       })
       
       indemprac <<- lapply(startYearprac:(startYearprac + practiceLength - 1), function(x){
-        with(practiceRuns, shinyInsMat(yy = x, clv = clv, acres = acres,
+        with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                        pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
       })
       myOuts[1, cost.ins := indemprac[[1]]$producer_prem]

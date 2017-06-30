@@ -1,9 +1,11 @@
+## Support functions for the shiny app
+
 getJulyInfo <- function(currentYear, name, startYear, myOuts){
   
   "
   Function: getJulyInfo
-  Description: Calculate available and predicted forage in july, create a
-    ui to display info and allow user to select adaptation level
+  Description: Calculates available and predicted forage in july, creates a
+    ui to display info and allows user to select adaptation level
   
   Inputs:
   currentYear = the current year
@@ -16,6 +18,7 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
   myYear <- startYear + currentYear - 1
   herd <- myOuts[currentYear, herd]
   zones <- station.gauge$zonewt
+  
   myOuts[currentYear, mTurkID := ID]
   ## Calcualte available forage for normal, high, and low precip over remaining months
   forargeList <- vector("numeric", 3)
@@ -32,7 +35,7 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
   forageList[3] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "low")
   
   ## Calculate cost of Adaptaiton
-  adaptInten <- sapply(forageList, CalculateAdaptationIntensity)
+  adaptInten <- sapply(forageList, calculateAdaptationIntensity)
   adaptInten <- c(adaptInten, 1)
   fullAdaptCost <- sapply(adaptInten, getAdaptCost, adpt_choice = "feed", pars = simRuns, 
                            days.act = 180, current_herd = herd)
@@ -160,10 +163,11 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
   )
 }
 
+
 getCowSell <- function(totalForage, wean, currentYear, name, myOuts){
   "
   Function: getCowSell
-  Description: create ui for a user to select how many cow and calves to sell
+  Description: Creates a UI for the user to select how many cows and calves to sell.
   
   Inputs:
   totalForage = the available forage after adaptation has been applied
@@ -192,19 +196,32 @@ getCowSell <- function(totalForage, wean, currentYear, name, myOuts){
     br(),
     h3(paste0("Year ", currentYear, ": Fall Cow and Calf Sales")),
     p("It is the end of the season and it is time to take your stock to market.
-      Use the information below to decide how many cows and calves you want to sell this year."),
+      Use the information below to decide how many cows and calves you want to 
+      sell this year."),
     br(),
+    
     if((weanWeight)<600){
-      h5(p("Your weaned calves weigh ", span((weanWeight), style="font-weight:bold;font-size:large;color:red") , " pounds, on average.", 
+      h5(p("Your weaned calves weigh ", 
+           span((weanWeight), 
+                style="font-weight:bold;font-size:large;color:red"), 
+           " pounds, on average.", 
            
-           " Your weaned calves weigh ", span((600 - weanWeight), style="font-weight:bold;font-size:large;color:red"), " pounds below their target weight.
+           " Your weaned calves weigh ", 
+           span((600 - weanWeight), 
+                style="font-weight:bold;font-size:large;color:red"), 
+           " pounds below their target weight.
+
            This means that you're losing out on $", 
-           span(paste0((simRuns$p.wn[1]*(600 - weanWeight)), "0"), style="font-weight:bold;font-size:large:color:red"), " for each calf you sell."))
-      
+           span(paste0((simRuns$p.wn[1]*(600 - weanWeight)), "0"), 
+                style="font-weight:bold;font-size:large:color:red"), 
+           " for each calf you sell."))
     }else{
-      h5(p("Your weaned calves weigh ", span((weanWeight), style="font-weight:bold;font-size:large;color:green") , " pounds, on average."))
-    }
-    ,
+      h5(p("Your weaned calves weigh ", 
+           span((weanWeight), 
+                style="font-weight:bold;font-size:large;color:green") , 
+           " pounds, on average."))
+    },
+    
     p("If your calves are lighter than 600 lbs, it is because the mother cows
                    may not have had sufficient feed due to low rainfall, insufficient hay, or too many cows on the range."),
     br(),
@@ -233,13 +250,12 @@ getCowSell <- function(totalForage, wean, currentYear, name, myOuts){
 }
 
 
-
-shinyInsMat <- function(yy, clv, acres, pfactor, insPurchase, tgrd){
+shinyInsurance <- function(yy, clv, acres, pfactor, insPurchase, tgrd){
   "
   Author: Adam (based loosely on Joe's work)
   
-  Calculates premium and indemification for a specific year and
-  grid cell. Currently returns are summed bu this could be done
+  Calculates premium and indemnification for a specific year and
+  grid cell. Currently returns are summed but this could be done
   on a index interval basis instead.
   
   yy: Year of interest.
@@ -308,6 +324,7 @@ shinyInsMat <- function(yy, clv, acres, pfactor, insPurchase, tgrd){
   return(returnTable)
 }
 
+
 inputToDF <- function(inputList){
   inputList <- inputList[names(inputList) != "enviro"]
   maxLength <- max(sapply(inputList, length))
@@ -322,6 +339,7 @@ inputToDF <- function(inputList){
   return(returnTable)
 }
 
+
 createOutputs <- function(practiceRuns, simRuns, indem, indemprac){
   practiceOuts <- createResultsFrame(practiceRuns)
   practiceOuts[1, cost.ins := indemprac[[1]]$producer_prem]
@@ -332,15 +350,17 @@ createOutputs <- function(practiceRuns, simRuns, indem, indemprac){
   # rangeHealthList <- rep(NA, 11)
 }
 
+
 rangeHealth <- function(currentYear, myOuts){
   #source("R/shinny_support.R")
-  ## Calcualte available forage for normal, high, and low precip over remaining months
+  ## Calculates available forage for normal, high, and low precip over remaining months
   ## Establish current state variables 
+  
   myYear <- startYear + currentYear - 1
   herd <- myOuts[currentYear, herd]
   zones <- station.gauge$zonewt
   
-  ## Calcualte available forage for normal, high, and low precip over remaining months
+  ## Calculate available forage for normal, high, and low precip over remaining months
   forargeList <- vector("numeric", 3)
   if(currentYear == 1){
     zones <- zones * (1 - (0)/simRuns$forage.constant)
@@ -355,17 +375,17 @@ rangeHealth <- function(currentYear, myOuts){
   forageList[3] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "low")
   
   ## Calculate cost of Adaptaiton
-  adaptInten <- sapply(forageList, CalculateAdaptationIntensity)
+  adaptInten <- sapply(forageList, calculateAdaptationIntensity)
   adaptInten <- c(adaptInten, 1)
   fullAdaptCost <- sapply(adaptInten, getAdaptCost, adpt_choice = "feed", pars = simRuns, 
                            days.act = 180, current_herd = herd)
   adaptMax <- max(fullAdaptCost)
+  
   ## Round outputs for display
   forageList <- round(forageList, 2) * 100
   fullAdaptCost <- prettyNum(round(fullAdaptCost, -2), big.mark=",",scientific=FALSE)
   expectCost <<- fullAdaptCost
   precipexpec <<- forageList
-
 }
 
 
@@ -386,17 +406,3 @@ simPageOutput <- function(rv, name = ""){
     )
   )
 }
-
-noIns <- function(){
-  purchaseInsurance <<- FALSE
-  indem <<- lapply(indem, function(x){
-    x[, c("producer_prem", "indemnity", "full_prem") := 0]
-    return(x)
-  })
-  indemprac <<- lapply(indemprac, function(x){
-    x[, c("producer_prem", "indemnity", "full_prem") := 0]
-    return(x)
-  })
-}
-
-
