@@ -268,8 +268,8 @@ function(input, output, session) {
     
     # Saves data to gsheets
     withProgress(message = "Saving Data", value = 1/3, {
-      inputSheet <- gs_title("cowGameInputs")
-      gs_add_row(inputSheet, ws="Inputs", input = saveData)
+      # inputSheet <- gs_title("cowGameInputs")
+      # gs_add_row(inputSheet, ws="Inputs", input = saveData)
       incProgress(1/3)
       # gs_new(title="fullgametest", trim=TRUE, verbose= TRUE, input= myOuts)
       outputSheet <- gs_title("cowGameOutputs")
@@ -331,8 +331,8 @@ function(input, output, session) {
     saveData <- t(saveData)
     # Remove first row of variable names
     withProgress(message = "Saving Data", value = 1/3, {
-      inputSheet <- gs_title("practiceGameInputs")
-      gs_add_row(inputSheet, ws="Inputs", input = saveData)
+      # inputSheet <- gs_title("practiceGameInputs")
+      # gs_add_row(inputSheet, ws="Inputs", input = saveData)
       #gs_new(title =  ID, 
       # input = saveData, trim = TRUE, verbose = TRUE)
       ## These are used to check the output in testing
