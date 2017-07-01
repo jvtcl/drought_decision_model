@@ -340,9 +340,9 @@ function(input, output, session) {
       #insheet <- gs_read(inputsheet)
       incProgress(1/3)
       # gs_new(title= "practiceGameOutputs", trim= TRUE, verbose=TRUE, input=myOuts)
-      # outputTable <- myOuts[1:6]
-      # outputSheet <- gs_title("practiceGameOutputs")
-      # gs_add_row(outputSheet, ws="Sheet1", input = outputTable)
+      outputTable <- myOuts[1:6]
+      outputSheet <- gs_title("practiceGameOutputs")
+      gs_add_row(outputSheet, ws="Sheet1", input = outputTable)
       ## This is used to validate in testing
       #outsheet <- outputSheet %>% gs_read(ws = "Outputs")
       
