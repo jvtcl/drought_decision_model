@@ -270,10 +270,11 @@ function(input, output, session) {
     withProgress(message = "Saving Data", value = 1/3, {
       # inputSheet <- gs_title("cowGameInputs")
       # gs_add_row(inputSheet, ws="Inputs", input = saveData)
+      outputSheet <- gs_title("cowGameOutputs")
       incProgress(1/3)
       # gs_new(title="fullgametest", trim=TRUE, verbose= TRUE, input= myOuts)
-      # outputSheet <- gs_title("cowGameOutputs")
-      # gs_add_row(outputSheet, ws="Sheet1", input = myOuts)
+
+      gs_add_row(outputSheet, ws="Sheet1", input = myOuts)
       
       ## This is used to validate in testing
       #outsheet <- outputSheet %>% gs_read(ws = "Outputs")
@@ -338,10 +339,11 @@ function(input, output, session) {
       ## These are used to check the output in testing
       #inputsheet <- gs_title(ID)
       #insheet <- gs_read(inputsheet)
-      incProgress(1/3)
-      # gs_new(title= "practiceGameOutputs", trim= TRUE, verbose=TRUE, input=myOuts)
       outputTable <- myOuts[1:6]
       outputSheet <- gs_title("practiceGameOutputs")
+      incProgress(1/3)
+      # gs_new(title= "practiceGameOutputs", trim= TRUE, verbose=TRUE, input=myOuts)
+      
       gs_add_row(outputSheet, ws="Sheet1", input = outputTable)
       ## This is used to validate in testing
       #outsheet <- outputSheet %>% gs_read(ws = "Outputs")
