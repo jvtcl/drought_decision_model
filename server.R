@@ -270,6 +270,7 @@ function(input, output, session) {
     withProgress(message = "Saving Data", value = 1/3, {
       # inputSheet <- gs_title("cowGameInputs")
       # gs_add_row(inputSheet, ws="Inputs", input = saveData)
+      gs_auth(token = "googlesheets_token.rds")
       outputSheet <- gs_title("cowGameOutputs")
       incProgress(1/3)
       # gs_new(title="fullgametest", trim=TRUE, verbose= TRUE, input= myOuts)
@@ -339,6 +340,7 @@ function(input, output, session) {
       ## These are used to check the output in testing
       #inputsheet <- gs_title(ID)
       #insheet <- gs_read(inputsheet)
+      gs_auth(token = "googlesheets_token.rds")
       outputTable <- myOuts[1:6]
       outputSheet <- gs_title("practiceGameOutputs")
       incProgress(1/3)
