@@ -1,7 +1,6 @@
 
 function(input, output, session) {
   
-  
   ## Calcualte indemnities for all years of the simulation
   indem <- lapply(startYear:(startYear + simLength - 1), function(x){
     with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
