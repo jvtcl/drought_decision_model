@@ -795,7 +795,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       geom_text(data = subset(plotOuts, `Value in $` !=0), aes(label = dollar(`Value in $`)), 
                 size = 5, position = position_stack(vjust = 0.5), angle = 90) +
       theme(legend.title = element_blank(), axis.title = element_text(size = 20), text = element_text(size = 20)) +
-      scale_fill_manual(values = c("#f4a460", "#85bb65")) +
+      scale_fill_manual(values = c("#f4c960", "#85bb65")) +
       labs(x="Year", y="Value in $")
     
   })
