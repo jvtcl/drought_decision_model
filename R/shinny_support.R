@@ -179,6 +179,7 @@ getCowSell <- function(totalForage, wean, currentYear, name, myOuts){
     p("It is the end of the season and it is time to take your stock to market.
       Use the information below to decide how many cows and calves you want to sell this year."),
     br(),
+    p("So far, for this year, your calf production rate has been", paste0(prettyNum((myOuts[currentYear, wn.succ]*100), digits= 0 , big.mark=",", scientific=FALSE),sep = ""), "%."),
     if((weanWeight)<600){
       h5(p("Your weaned calves weigh ", span((weanWeight), style="font-weight:bold;font-size:large;color:red") , " pounds, on average.", 
            
