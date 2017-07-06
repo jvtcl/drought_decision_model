@@ -276,10 +276,10 @@ function(input, output, session) {
       # gs_new(title="fullgametest", trim=TRUE, verbose= TRUE, input= myOuts)
 
       gs_add_row(outputSheet, ws="Sheet1", input = myOuts)
-      oauth <- ".httr-oauth"
-      if(file.exists(oauth)){
-        file.remove(oauth)
-      }
+      # oauth <- ".httr-oauth"
+      # if(file.exists(oauth)){
+      #   file.remove(oauth)
+      # }
       ## This is used to validate in testing
       #outsheet <- outputSheet %>% gs_read(ws = "Outputs")
 
@@ -350,10 +350,10 @@ function(input, output, session) {
       # gs_new(title= "practiceGameOutputs", trim= TRUE, verbose=TRUE, input=myOuts)
       
       gs_add_row(outputSheet, ws="Sheet1", input = outputTable)
-      oauth <- ".httr-oauth"
-      if(file.exists(oauth)){
-        file.remove(oauth)
-      }
+      # oauth <- ".httr-oauth"
+      # if(file.exists(oauth)){
+      #   file.remove(oauth)
+      # }
       ## This is used to validate in testing
       #outsheet <- outputSheet %>% gs_read(ws = "Outputs")
       
