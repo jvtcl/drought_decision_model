@@ -9,7 +9,7 @@ RUN apt-get update \
   libssl-dev \
   libxml2-dev \
   libv8-3.14-dev \
-  && R -e "install.packages(c('leaflet', 'shinyBS', 'googlesheets', 'shinyjs', 'data.table', 'RColorBrewer', 'V8'))" \
+  && R -e "install.packages(c('leaflet', 'shinyBS', 'RMySQL', 'shinyjs', 'data.table', 'RColorBrewer', 'V8', 'pysch'))" \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
