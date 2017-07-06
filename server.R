@@ -265,7 +265,7 @@ function(input, output, session) {
     # Pivot save data to horizontal
     saveData <- t(saveData)
     
-    # Saves data to gsheets
+    # Saves data to MySQL
     withProgress(message = "Saving Data", value = 1/3, {
       con <- dbConnect(MySQL(),
                        user = 'cowgame',
