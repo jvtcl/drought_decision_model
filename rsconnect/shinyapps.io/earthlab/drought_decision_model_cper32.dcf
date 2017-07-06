@@ -1,0 +1,10 @@
+name: drought_decision_model_cper32
+title: drought_decision_model_cper3
+account: earthlab
+server: shinyapps.io
+appId: 191135
+bundleId: 876658
+url: https://earthlab.shinyapps.io/drought_decision_model_cper32/
+when: 1498049897.74581
+asMultiple: FALSE
+asStatic: FALSE

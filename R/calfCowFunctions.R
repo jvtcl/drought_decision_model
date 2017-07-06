@@ -1,32 +1,27 @@
 # Calf Weight Functions ---------------------------------------------------
 
-AdjWeanSuccess <- function(forage.production, noadpt = FALSE, normal.wn.succ, t) {
+AdjWeanSuccess <- function(totalForage, totalForage1ya, normal.wn.succ) {
   # Description: Adusts weaning success downward for the year of the drought and the following year
   # NOTE: This equation is based on what I consider to be "reasonable" estimates
   #  of weaning success based on forage potential. We need to find a source
   #  that gives a better idea of the relationship
   
   wn.succ <- NULL
-  
-  if(noadpt == FALSE | forage.production >= 1) {
-    wn.succ <- rep(normal.wn.succ, t)
-  }
-  if(noadpt == TRUE & forage.production < 1) {
-    if(t > 1){
-      wn.succ[1] <- normal.wn.succ * (1 / (1 + exp(-(1 + forage.production)*2))) 
-      wn.succ[2] <- normal.wn.succ * (1 / (1 + exp(-(1 + forage.production))))
-      wn.succ[3:t] <- normal.wn.succ                                
-    }else{
-      wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + forage.production)*2))) 
-    }
+  if(totalForage < 1){
+    wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage) * 2)))
+  }else if(totalForage1ya < 1){
+    wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage))))
+  }else{
+    wn.succ <- normal.wn.succ
   }
   return(wn.succ)
 }  
 
 calfDroughtWeight<-function(normal.wn.wt, forage.production){
   "
-  Description: If forage potential is less than 1, then the calf weight is less
-  #****Is this method of reducing weight back up by the literature?
+  Description: If forage potential is less than 1, then the calf weight is less 
+than the optimal weight.
+  #****Is this method of reducing weight back up by the literature? 
   "
   if(forage.production < 1) {
     wn.wt <- normal.wn.wt * (1 - (1 - forage.production)/3)
@@ -40,7 +35,7 @@ calfDroughtWeight<-function(normal.wn.wt, forage.production){
 calfWeanWeight <- function(styr, sim_length){
   
   "
-  Compute calf weights based on station/grid cell
+  Computes calf weights based on station/grid cell
   forage potential for a n-year period.
   
   Inputs:
@@ -79,7 +74,7 @@ calfWeanWeight <- function(styr, sim_length){
   ## In a dynamic model we may want to decrement these based on previous decisions
   ## but that might be best done elsewhere in the code
   forage.weights = unlist(lapply(seq(styr, styr + (sim_length - 1)),function(i){
-    foragePWt(station.gauge, i, herd, carryingCap)
+    getForagePotential(station.gauge, i, herd, carryingCap)
   }))
   
   ## Calculate wean weight for each year of the simulation
@@ -93,33 +88,10 @@ calfWeanWeight <- function(styr, sim_length){
   return(calf_weights_ann)
 }
 
-getHerdSize <- function(results_1ya, results_2ya, deathRate){
-  "
-  Function: getHerdSize
-  Description: function to calcualte the size of herd based on results from two previous years
-  
-  Inputs:
-  results_1ya = results from 1 year ago
-  results_2ya = results from 2 years ago
-  deathRate = percent of cows dying each year
-  
-  Outputs:
-  currentHerd = size of the current herd
-  "
-  
-  
-  currentHerd <- (results_1ya$herd * (1 - deathRate) * 
-                    (1 - results_1ya$cows.culled) + 
-                    (results_2ya$herd * results_2ya$wn.succ) *
-                    (1 - results_2ya$calves.sold) * (1 - deathRate))
-  return(currentHerd)
-}
-
-
 shinyHerd <- function(herd_1, cull_1, herd_2, calves_2, deathRate){
   "
   Function: shinyHerd
-  Description: function to calculate size of herd for shiny app
+  Description: calculates the size of herd for the shiny app
   
   Inputs:
   herd_1 = herd size 1 year ago

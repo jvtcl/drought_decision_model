@@ -1,0 +1,157 @@
+\documentclass[11pt]{article}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\usepackage{amsmath}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\title{Mathematical representation of the drought decision model - Shiny Version}
+\author{Trisha Shrum}
+%\date{}                                           % Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+%\section{}
+%\subsection{}
+ 
+\section{Scripts}
+
+\subsection{global.R}
+\begin{enumerate}
+\item Sources other scripts
+\item Javascript coding
+\item Populate a new environment with rainfall gauge info: \verb!getStationGauge()!
+\item Populate a new environment with constant (user) variables: \verb!getConstantVars()!
+\item Setting additional variables: acres, start years, simulation lengths
+\item Create state variables for practice and full runs: \verb!getSimVars()!
+\item Create lists of variables for practice and full runs: \verb!practiceRuns!, \verb!simRuns!
+\item Establish additional settings
+\end{enumerate}  
+ 
+\subsection{load.R}
+Loads necessary packages
+
+\subsection{shinySupportFunctions.R}
+\begin{enumerate}
+\item \verb!getJulyInfo! function: Calculates available and predicted forage in July, creates a
+    UI to display info and allows user to select adaptation level.
+    \begin{itemize}
+    \item Called in \verb!simUI.R!
+    \end{itemize}
+\item \verb!getCowSell! function: Creates a UI for the user to select how many cows and calves to sell. Called in \verb!simUI.R!.
+\item \verb!shinyInsurance! function: Calculates premium and indemnification for a specific year and
+  grid cell. Currently returns are summed but this could be done on a index interval basis instead.
+\end{enumerate}
+
+\subsection{forageFunctions.R}
+
+\begin{itemize}
+	\item \verb!getForagePotential! function: Returns an index representing
+  annual forage production for a given gridcell or station gauge's annual precipitation record. Called in \verb!calfCowFunctions.R!.
+	\item \verb!whatIfForage! function: calculates expected forage for a given scenario. Called in \verb!shinySupportFunctions.R! and \verb!simUI.R!.
+	\item \verb!getMLRAWeights! function: Computes forage potential weights using the
+  mean of plant growth curves by MRLA for a specified state. Called in \verb!initialFunctions.R!.
+  	\item \verb!COOP_in_MLRA! function: Returns the MLRA in which a specified
+  coop site is located. Called in \verb!initialFunctions.R!.
+\end{itemize}
+
+\subsection{adaptationFunctions.R}
+
+\begin{itemize}
+	\item \verb!calculateAdaptationIntensity! function: Takes forage potential and an adaptation intensity factor to provide a scalar of drought action. If forage potential is above 1 (no drought), then this variable goes to 0 (no adaptation). Called in \verb!shinySupportFunctions.R! and \verb!simUI.R!.
+\end{itemize}
+
+\subsection{costRevenueFunctions.R}
+
+\begin{itemize}
+	\item \verb!calculateExpSales! function: Calculates expected calf revenues for non-drought year. 
+	\item \verb!calculateFeedCost! function: Calculates the costs of purchasing additional feed. Called in \verb!getAdaptCost! in \verb!costRevenueFunctions.R!. 
+	\item \verb!CalculateRentPastCost! function: Calculates the costs of renting pasture and trucking pairs. Called in \verb!getAdaptCost! in \verb!costRevenueFunctions.R!.
+	\item \verb!getAdaptCost! function: Calculates the cost of adaptation based on strategy, intensity needed, days, and herd size. Called in \verb!shinySupportFunctions.R! and \verb!simUI.R!.
+\end{itemize}
+
+\subsection{initialFunctions.R}
+
+\begin{itemize}
+	\item \verb!getConstantVars! function: Reads in constant variables into a
+  \verb!constvars! environment using the  file \verb!data/constant_vars.csv!. Called in \verb!global.R!.
+  	\item \verb!getSimVars! function: Creates list of simulation variables. Called in \verb!global.R!.
+  	\item \verb!getStationGauge! function: Returns precipitation record and locational attributes for the target location. Default is Central Plains Experimental Range (CPER) but alternative locations at COOP sites across Colorado may be specified. Called in \verb!global.R!.
+  	\item \verb!createResultsFrame! function: This function creates a theoretical previous result from the year before the simulation begins right now this assumes that there was no drought the year before the simulation and revenues were 0. These assumptions are likely unrealistic and can be adjusted to accomodate different scenarios. Called in \verb!shinySupportFunctions.R! and \verb!server.R!.
+\end{itemize}
+
+\subsection{calfCowFunctions.R}
+
+\begin{itemize}
+	\item \verb!AdjWeanSuccess! function: Adusts weaning success downward for the year of the drought and the following year. Called in \verb!simUI.R!.
+	\item \verb!calfDroughtWeight! function: If forage potential is less than 1, then the calf weight is less than the optimal weight. Called in \verb!shinySupportFunctions.R! and \verb!simUI.R!.
+	\item \verb!calfWeanWeight! function: Computes calf weights based on station/grid cell forage potential for a n-year period. Called in \verb!initialFunctions.R!.
+	\item \verb!shinyHerd! function: calculates the size of herd for the shiny app. Called in \verb!simUI.R!.
+\end{itemize}
+
+\subsection{assetFunctions.R}
+\begin{itemize}
+	\item \verb!CalcCowAssets! function: Calculates the cow assets for each year. Called in \verb!initialFunctions!.
+\end{itemize}
+
+
+\section{Function Details}
+
+\subsection{AdjWeanSuccess}
+
+\subsection{Current State}
+\begin{itemize}
+\item Function: \verb!AdjWeanSuccess!
+	\begin{itemize}
+	\item Description: Adjusts weaning success downward for the year of the drought and the following year based on a modified logistic equation. 
+	\item Inputs: \verb!stgg!, \verb!zonewt!, \verb!stzone!, \verb!styear!, \verb!noadpt!, \verb!normal.wn.succ!, \verb!t!
+	\item Output: \verb!wn.succ! (tx1 vector of weaning success in percentage of cows that will have calves that survive to be fully weaned)
+	\item Assumptions: This equation is based on what I consider to be ``reasonable" estimates of weaning success based on forage potential. These fall roughly in line with body condition scores from the \textit{Nutrient Requirements of Beef Cattle}, but are only ballpark estimates.
+	\end{itemize}
+\end{itemize}
+
+If drought adaptation is not undertaken and $\alpha < 1$:
+\begin{align}
+wn_1 &= \bar{wn} * \frac{1}{1 + e^{2(-1 + \alpha_1)}} \\
+wn_2 &= \bar{wn} * \frac{1}{1 + e^{(-1 + \alpha_1)}} \\
+wn_3 &= \bar{wn} \\
+wn_4 &= \bar{wn} \\
+wn_5 &= \bar{wn} \\
+\end{align}
+
+Otherwise: 
+\begin{equation}
+wn_t = \bar{wn}
+\end{equation}
+
+\subsubsection{Desired Future State}
+
+The weaning percentage default and maximum is 88\%. \\
+
+If forage production falls below 1 in year $t=1$, then weaning percentage falls slightly in year $t=1$ and more drastically in year $t=2$. If forage production falls below 1 in a year $t=1$ where weaning percentage was already decremented because of previous forage production deficits or insufficient culling, then weaning percentage falls further in years $t=1,2$ than it would have if the starting point was at the maximum weaning percentage. \\
+
+Where \verb!wn.succ! is the weaning success going into a given year (say, t = 5) and \verb!forage.production! $< 1$:
+for year t=5, the final weaning success for the full year is given by: 
+
+\verb!wn.succ <- wn.succ * (1 / (1 + exp(-(1 + forage.production_t5)*2)))! \\
+
+For the year t=5, if the \verb!forage.production_t6! $\ge 1$:
+
+\verb!wn.succ <- wn.succ * (1 / (1 + exp(-(1 + forage.production_t5))))! \\
+
+If forage production is below 1 for more than year in a row, then the wn.succ is decremented twice. Once with the first year decrement, and once with the second year decrement.
+
+year 1 and 2 have low forage, but recovers to 1 or more in year 3:
+\verb!wn.succ_2 <-  wn.succ * (1 / (1 + exp(-(1 + forage.production_1))))  * (1 / (1 + exp(-(1 + forage.production_2)*2)))! 
+\verb!wn.succ_3 <-  wn.succ * (1 / (1 + exp(-(1 + forage.production_2))))! \\
+
+
+
+
+
+
+ \end{document}

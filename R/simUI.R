@@ -1,6 +1,6 @@
 simCreator <- function(input, output, session, i, rv, simLength, startYear, myOuts, indem, purchaseInsurance,
                      whatifIndem, name = ""){
-  
+  pageScroll <- F
   # orgName preserves the orginal name (either "" for the real simulation 
   #   or prac for practice), name is used at the end of all objects to
   #   create a unique output objects for each output and ui element
@@ -15,7 +15,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     if(!is.null(input[[paste0("insCont", name)]])){  
       if(input[[paste0("insCont", name)]] == 1){
         calvesAvailable <- 
-          myOuts[i, herd] * AdjWeanSuccess(get(paste0("totalForage", name))(), T, simRuns$normal.wn.succ, 1)
+          myOuts[i, herd] * AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i - 1, total.forage], simRuns$normal.wn.succ)
       }else{
         calvesAvailable <- myOuts[i, herd] * simRuns$normal.wn.succ
       }
@@ -84,7 +84,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     forage.production <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 10, 11, "normal")
 
     # Calculate adaptation intensity based on forage production
-    adaptInten <- CalculateAdaptationIntensity(forage.production)
+    adaptInten <- calculateAdaptationIntensity(forage.production)
     
     # Calculate adaptation cost
     fullAdaptCost <-getAdaptCost(adpt_choice = "feed", pars = simRuns, 
@@ -365,9 +365,10 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     userPay <- gsub(",", "", input[[paste0("insurancePremium", name)]])
     userPay <- tryCatch(as.numeric(gsub("\\$", "", userPay)),
                         warning = function(war)return(0))
-    if(!debugMode){
+    if(!debugMode & purchaseInsurance == T){
       req(userPay == round(indem[[i]]$producer_prem, 0), genericWrong)
     }
+    rv$scrollPage <- T
     actionButton(paste0("year", name, "Start"), "Next")
   })
   
@@ -414,6 +415,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
               p("You didn't get much rain this summer! In the graph below you can see how much
                 it has rained since you decided whether or not to purchase hay (July and August). 
                 The grey bars indicate old/past rainfall, while the dark blue bars indicate new rainfall"),
+              p(ForageValueAllp),
               plotOutput(paste0("rainGraphSep", name)),
               if(purchaseInsurance == TRUE) {
                 p("Since you have rainfall insurance, 
@@ -423,13 +425,13 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
               },
               br(),
               if(purchaseInsurance == TRUE) {
-                h4(p("Rainfall was below normal levels during the growing season, 
-                     so you have received a check for $", span((currentIndem),
+                h4(p("Rainfall was below normal levels during the growing season. This means that for the months most important for grass growth (May-August), rainfall was below 90% of the average. Because of this below normal rainfall level,
+                      you have received a check for $", span((currentIndem),
                                                              style="font-weight:bold;font-size:large;color:green"), 
                      " from your rain insurance policy."))
               },
               if(purchaseInsurance == FALSE) {
-                h4("Rainfall was below normal levels during the growing season.")
+                h4("Rainfall was below normal levels during the growing season. This means that for the months most important for grass growth (May-August), rainfall was below 90% of the average.")
               },
               if(purchaseInsurance == TRUE) {
                 textInput(paste0("insuranceDeposit", name), 
@@ -459,12 +461,13 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
               p("You got sufficient rain this summer, so your grass should be in good shape for your cattle! 
                 In the graph below you can see how much
                 it has rained since you decided whether or not to purchase hay (July and August)."),
+              p(ForageValueAllp),
               plotOutput(paste0("rainGraphSep", name)),
               if(purchaseInsurance == TRUE) {
-                h4("Rainfall was close to or above normal levels during the growing season, so you did not receive a check for your rain insurance policy.")
+                h4("Rainfall was close to or above normal levels during the growing season. This means that for the months most important for grass growth (May-August), rainfall was at least 90% of the average.")
               },
               if(purchaseInsurance == FALSE) {
-                h4("Rainfall was close to or above normal levels during the growing season.")
+                h4("Rainfall was close to or above normal levels during the growing season. This means that for the months most important for grass growth (May-August), rainfall was at least 90% of the average.")
               },
               if(purchaseInsurance == TRUE) {
                 h4(paste0("After your expenditures on hay and insurance, your new bank balance is: $", 
@@ -493,13 +496,9 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
 
   ## Present options to sell cows
   output[[paste0("cowSell", name)]] <- renderUI({
-    # if(!is.null(input[[paste0("year", i, "Summer")]])){
-    #   if(input[[paste0("year", i, "Summer")]] == 1){
     req(input[[paste0("insCont", name)]])
-    # print(get(paste0("totalForage", name))())
-    # print( AdjWeanSuccess(get(paste0("totalForage", name))(), T, simRuns$normal.wn.succ, 1))
     tagList(
-      getCowSell(get(paste0("totalForage", name))(), AdjWeanSuccess(get(paste0("totalForage", name))(), T, simRuns$normal.wn.succ, 1), i, name, myOuts),
+      getCowSell(get(paste0("totalForage", name))(), AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i - 1, total.forage], simRuns$normal.wn.succ), i, name, myOuts),
       plotOutput(paste0("cowPlot", name)),
       br(),
       p("Herd prediction details",bsButton("herdetails", label = "", icon = icon("question"), style = "info", class="inTextTips", size = "extra-small"),bsPopover(id = "herdetails", title = "Herd Prediction",content = paste0("Keep in mind that yearlings (weaned calves that are not yet producing calves) are not counted in these herd size numbers. You do not have the option to sell yearlings in this game. These herd size predictions also assume that you go back to normal culling and calf sale rates next year. For these reasons, your herd may not go all the way to 0 if you sell off all of your cows and calves."), 
@@ -646,6 +645,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   output[[paste0("nextButton", name)]] <- renderUI({
     if(!is.null(input[[paste0("sell", name)]])){
       if(input[[paste0("sell", name)]] == 1){
+        rv$scrollPage <- T
         tagList(
           actionButton(paste0("nextBtn", orgName), "Begin Next Year >")
         )
@@ -657,47 +657,55 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   ## Create button to sell calves and cows once decisions are made
   ## Additionally moves simualation to the next year
   output[[paste0("sellButton", name)]] <- renderUI({
-    # if(!is.null(input[[paste0("year", name, "Summer")]])){
-    #   if(input[[paste0("year", name, "Summer")]] == 1){
     req(input[[paste0("insCont", name)]])    
     tagList(
       actionButton(paste0("sell", name), "Sell Calves and Cows")
     )
-    #   }
-    # }
   })
   
   
   output[[paste0("postDeposit", name)]] <- renderUI({
-    if(input[[paste0("insuranceDeposit", name)]] != ""){
-      userIns <- gsub(",", "", input[[paste0("insuranceDeposit", name)]])
-      userIns <- tryCatch(as.numeric(gsub("\\$", "", userIns)),
-                          warning = function(war)return(0))
-      if(!debugMode){
-        validate(
-          need(userIns == round(indem[[i]]$indemnity, 0), genericWrong)
-        )
+    accountPrint <- F
+    if(purchaseInsurance){
+      if(input[[paste0("insuranceDeposit", name)]] != ""){
+        userIns <- gsub(",", "", input[[paste0("insuranceDeposit", name)]])
+        userIns <- tryCatch(as.numeric(gsub("\\$", "", userIns)),
+                            warning = function(war)return(0))
+        if(!debugMode & purchaseInsurance){
+          validate(
+            need(userIns == round(indem[[i]]$indemnity, 0), genericWrong)
+          )
+        }
+        accountPrint <- T
+      }
+    }else{
+      accountPrint <- T
+    }
+    req(accountPrint)
+    if(purchaseInsurance){
+      txtInsert <-  "and your insurance check, "
+    }else{
+      txtInsert <- ""
+    }
+    accountTxt <- paste0("After your expenditures on hay ", txtInsert, "your new bank balance is: $")
+    rv$scrollPage <- T
+    fluidRow(
+      if(myOuts[i, assets.cash] + indem[[i]]$indemnity - 
+         indem[[i]]$producer_prem - input[[paste0("d", name, "adaptExpend")]] > 0){
+        h4(p(accountTxt, 
+             span(prettyNum(myOuts[i, assets.cash] + indem[[i]]$indemnity - 
+                              indem[[i]]$producer_prem - input[[paste0("d", name, "adaptExpend")]], 
+                            digits = 0, big.mark=",",scientific=FALSE), style = "font-weight:bold:font-size:Xlarge;color:green")))
+      }
+      else{
+        h4(p(accountTxt, 
+             span(prettyNum(myOuts[i, assets.cash] + indem[[i]]$indemnity - 
+                              indem[[i]]$producer_prem - input[[paste0("d", name, "adaptExpend")]], 
+                            digits = 0, big.mark=",",scientific=FALSE), style = "font-weight:bold:font-size:Xlarge;color:red")))
+        
       }
       
-      fluidRow(
-        
-        if(myOuts[i, assets.cash] + indem[[i]]$indemnity - 
-           indem[[i]]$producer_prem - input[[paste0("d", name, "adaptExpend")]] > 0){
-          h4(p("After your expenditures on hay and your insurance check, your new bank balance is: $", 
-               span(prettyNum(myOuts[i, assets.cash] + indem[[i]]$indemnity - 
-                                indem[[i]]$producer_prem - input[[paste0("d", name, "adaptExpend")]], 
-                              digits = 0, big.mark=",",scientific=FALSE), style = "font-weight:bold:font-size:Xlarge;color:green")))
-        }
-        else{
-          h4(p("After your expenditures on hay and your insurance check, your new bank balance is: $", 
-               span(prettyNum(myOuts[i, assets.cash] + indem[[i]]$indemnity - 
-                                indem[[i]]$producer_prem - input[[paste0("d", name, "adaptExpend")]], 
-                              digits = 0, big.mark=",",scientific=FALSE), style = "font-weight:bold:font-size:Xlarge;color:red")))
-          
-        }
-        
-      )
-    }
+    )
   })
   
   output[[paste0("insSpace", name)]] <- renderUI({
@@ -762,7 +770,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
         herdy2 <- shinyHerd(herd_1 = herdy1,  # t-1 for year 2 is next years herd size
                             cull_1 = myOuts[1, cows.culled],  # we don't know how many cows they will cull next year. assume stability/default of 16% (draw from )
                             herd_2 = herdy0,  # t-2 for year 2 is this year
-                            calves_2 = (floor(herdy0 * AdjWeanSuccess(get(paste0("totalForage", name))(), T, simRuns$normal.wn.succ, 1)) - calves),  # Calves in the herd this year minus those that are sold via the slider input
+                            calves_2 = (floor(herdy0 * AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i - 1, total.forage], simRuns$normal.wn.succ)) - calves),  # Calves in the herd this year minus those that are sold via the slider input
                             deathRate = simRuns$death.rate) 
         
         years <- c("This Year","Next Year","In Two Years")
@@ -797,7 +805,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       geom_text(data = subset(plotOuts, `Value in $` !=0), aes(label = dollar(`Value in $`)), 
                 size = 5, position = position_stack(vjust = 0.5), angle = 90) +
       theme(legend.title = element_blank(), axis.title = element_text(size = 20), text = element_text(size = 20)) +
-      scale_fill_manual(values = c("#f4a460", "#85bb65")) +
+      scale_fill_manual(values = c("#f4c960", "#85bb65")) +
       labs(x="Year", y="Value in $")
     
   })
@@ -892,6 +900,13 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     shinyjs::disable(paste0("year", name, "Start"))
     delay(100,session$sendCustomMessage(type = "scrollCallbackRain", paste0("rainGraph", i)))
   })
+
+  observeEvent(rv$scrollPage, {
+    req(rv$scrollPage)
+    rv$scrollPage <- F
+    delay(100,session$sendCustomMessage(type = "scrollCallbackBottom", 0))
+  })
+  
   
   ## Disable cow and calf sliders after sell button
   ## Disable sell button
@@ -900,7 +915,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     disable(paste0("sell", name))
     disable(paste0("calves", name, "Sale"))
     disable(paste0("cow", name, "Sale"))
-    myOuts <<- updateOuts(wean = AdjWeanSuccess(get(paste0("totalForage", name))(), T, simRuns$normal.wn.succ, 1), 
+    myOuts <<- updateOuts(wean = AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i - 1, total.forage], simRuns$normal.wn.succ), 
                           totalForage = get(paste0("totalForage", name))(), calfSale = input[[paste0("calves", name, "Sale")]],
                           indem = indem[[i]], adaptExpend = input[[paste0("d", name, "adaptExpend")]], cowSales = input[[paste0("cow", name, "Sale")]], 
                           newHerd = get(paste0("herdSize", name))(), zones = get(paste0("currentZones", name))(), 
@@ -910,6 +925,10 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   
   # Disable continue button and adaptation slider after clicking
   observeEvent(input[[paste0("year", name, "Summer")]], {
+    tempValue <- gsub(",", "", input[[paste0("d", name, "adaptExpend")]])
+    tempValue <- gsub("//$", "", tempValue)
+    updateNumericInput(session, paste0("d", name, "adaptExpend"), 
+                       value = tempValue)
     shinyjs::disable(paste0("year", name, "Summer"))
     shinyjs::disable(paste0("d", name, "adaptExpend"))
     delay(100,session$sendCustomMessage(type = "scrollCallbackIns", paste0("rainGraphSep", i)))
@@ -953,9 +972,9 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     currentYear <- currentYear + 1
     oldOuts[currentYear, yr := startYear + pastYear - 1]
     adaptInten <- 
-      CalculateAdaptationIntensity(whatIfForage(station.gauge, zones, oldOuts[currentYear, yr], currentHerd, carryingCapacity, 10, 11, "normal"))
+      calculateAdaptationIntensity(whatIfForage(station.gauge, zones, oldOuts[currentYear, yr], currentHerd, carryingCapacity, 10, 11, "normal"))
     
-    oldOuts[currentYear, rev.calf := CalculateExpSales(herd = NA, wn.succ = NA, 
+    oldOuts[currentYear, rev.calf := calculateExpSales(herd = NA, wn.succ = NA, 
                                                        wn.wt = calfDroughtWeight(simRuns$normal.wn.wt, totalForage), 
                                                        calf.sell = calfSale, p.wn = simRuns$p.wn[pastYear])]
     oldOuts[currentYear, simStartTime := startTime]
@@ -967,7 +986,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
                                            0)]
     oldOuts[currentYear, household.exp := simRuns$household.exp]
     oldOuts[currentYear, rev.tot := oldOuts[currentYear, rev.ins] + oldOuts[currentYear, rev.int] + oldOuts[currentYear, rev.calf]]
-    oldOuts[currentYear, cost.op := CalculateBaseOpCosts(herd = currentHerd, cow.cost = simRuns$cow.cost)]
+    oldOuts[currentYear, cost.op := currentHerd * simRuns$cow.cost]
     oldOuts[currentYear, cost.ins := indem$producer_prem]
     oldOuts[currentYear, cost.adpt := adaptExpend]
     oldOuts[currentYear, cost.int := ifelse(oldOuts[pastYear, assets.cash] < 0,

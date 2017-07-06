@@ -1,15 +1,14 @@
 
 function(input, output, session) {
   
-  
   ## Calcualte indemnities for all years of the simulation
   indem <- lapply(startYear:(startYear + simLength - 1), function(x){
-    with(simRuns, shinyInsMat(yy = x, clv = clv, acres = acres,
+    with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                               pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
   })
   
   indemprac <- lapply(startYearprac:(startYearprac + practiceLength - 1), function(x){
-    with(practiceRuns, shinyInsMat(yy = x, clv = clv, acres = acres,
+    with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                    pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
   })
   
@@ -37,7 +36,7 @@ function(input, output, session) {
   values <- reactiveValues("saveComplete" = FALSE, "practSaveComplete" = FALSE)
   
   # Reactive value used to track what page to display, once value changes display page changes
-  rv <- reactiveValues(page = 1)
+  rv <- reactiveValues(page = 1, scrollPage = F)
   rvPrac <- reactiveValues(page = 1)
   
 
@@ -95,12 +94,12 @@ function(input, output, session) {
       purchaseInsurance <<- TRUE
       print("its T")
       indem <<- lapply(startYear:(startYear + simLength - 1), function(x){
-        with(simRuns, shinyInsMat(yy = x, clv = clv, acres = acres,
+        with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                   pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
       })
       
       indemprac <<- lapply(startYearprac:(startYearprac + practiceLength - 1), function(x){
-        with(practiceRuns, shinyInsMat(yy = x, clv = clv, acres = acres,
+        with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                        pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
       })
       myOuts[1, cost.ins := indemprac[[1]]$producer_prem]
@@ -266,17 +265,15 @@ function(input, output, session) {
     # Pivot save data to horizontal
     saveData <- t(saveData)
     
-    # Saves data to gsheets
+    # Saves data to MySQL
     withProgress(message = "Saving Data", value = 1/3, {
-      # inputSheet <- gs_title("cowGameInputs")
-      # gs_add_row(inputSheet, ws="Inputs", input = saveData)
+      con <- dbConnect(MySQL(),
+                       user = 'cowgame',
+                       password = 'cowsrock',
+                       host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
+                       dbname = 'cowgame')
       incProgress(1/3)
-      # gs_new(title="fullgametest", trim=TRUE, verbose= TRUE, input= myOuts)
-      outputSheet <- gs_title("cowGameOutputs")
-      gs_add_row(outputSheet, ws="Sheet1", input = myOuts)
-      
-      ## This is used to validate in testing
-      #outsheet <- outputSheet %>% gs_read(ws = "Outputs")
+      dbWriteTable(conn = con, name = 'cowGameOutputs', value = as.data.frame(myOuts), overwrite=FALSE, append = TRUE)
 
     })
     values$saveComplete <- TRUE
@@ -331,20 +328,15 @@ function(input, output, session) {
     saveData <- t(saveData)
     # Remove first row of variable names
     withProgress(message = "Saving Data", value = 1/3, {
-      # inputSheet <- gs_title("practiceGameInputs")
-      # gs_add_row(inputSheet, ws="Inputs", input = saveData)
-      #gs_new(title =  ID, 
-      # input = saveData, trim = TRUE, verbose = TRUE)
-      ## These are used to check the output in testing
-      #inputsheet <- gs_title(ID)
-      #insheet <- gs_read(inputsheet)
-      incProgress(1/3)
-      # gs_new(title= "practiceGameOutputs", trim= TRUE, verbose=TRUE, input=myOuts)
+      con <- dbConnect(MySQL(),
+                       user = 'cowgame',
+                       password = 'cowsrock',
+                       host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
+                       dbname = 'cowgame')
+
       outputTable <- myOuts[1:6]
-      outputSheet <- gs_title("practiceGameOutputs")
-      gs_add_row(outputSheet, ws="Sheet1", input = outputTable)
-      ## This is used to validate in testing
-      #outsheet <- outputSheet %>% gs_read(ws = "Outputs")
+      incProgress(1/3)
+      dbWriteTable(conn = con, name = 'practiceGameOutputs', value = as.data.frame(outputTable), overwrite=FALSE, append = TRUE)
       
     })
     values$practSaveComplete <- TRUE

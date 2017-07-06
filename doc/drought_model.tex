@@ -58,14 +58,14 @@
 Function: \verb!sim_run!
 \begin{enumerate}
 \item Load \verb!insurance_base.RData!
-\item Calculate base sales and operating costs with average weaning weights (Functions: \verb!CalculateExpSales!, \verb!CalculateBaseOpCosts!)
+\item Calculate base sales and operating costs with average weaning weights (Functions: \verb!calculateExpSales!, \verb!CalculateBaseOpCosts!)
 \item Compute insurance premiums and indemnities (Functions: \verb!insMat!)
 \item Calculate base cow assets and capital taxes (Functions: \verb!CalcCowAssets, CalcCapSalePurch, CalcCapTaxes!)
 \item Calculate outputs without a drought (Function: \verb!OptionOutput!)
-\item Calculate forage potential vector (Function: \verb!foragePWt!)
+\item Calculate forage potential vector (Function: \verb!getForagePotential!)
 \item Calculate drought action adjustment (Function: \verb!CalculateAdaptationIntensity!)
 \item Calculate days of action (Function: \verb!CalculateDaysActions!)
-\item Calculate expected sales revenues without adaptation, thus weaning weight is affected by forage potential (Function: \verb!CalculateExpSales!)
+\item Calculate expected sales revenues without adaptation, thus weaning weight is affected by forage potential (Function: \verb!calculateExpSales!)
 \item Calculate costs of adaptation for buying feed, renting pasture, and selling (and replacing) cows (Functions: \verb!CalculateFeedCost, CalculateRentPastCost, CalculateSellPrsCost!)
 \item Calculate the revenues under renting pasture and selling and replacing adaptation options. Revenues are unchanged from the base level for buying feed. (Functions: \verb!CalculateRentPastRevenue, CalculateSellPrsRev!)
 \item Calculate changing assets for sell and replace and selling without replacement options. (Functions: \verb!CalcCowAssets, CalcCapSalesPurch, CalcCapTaxes!)
@@ -130,7 +130,7 @@ The model is currently set for a default to the Central Plans Experimental Range
 \end{enumerate}
 
 \begin{itemize}
-\item Function: foragePWt
+\item Function: getForagePotential
 	\begin{itemize}
 	\item Description: Returns a weight representing annual forage potential for a given gridcell or station gauge's annual precipitation record. By default, it	computes the sum of weighted product of forage potential and long-term precipitation deviation from average for a given year relative to a grid cell or station gauge's period of record. To assemble the weights: It uses the product of deviation in precipitation from long-term (1948-2015) average and zone weights for months occurring before and during the decision month. For months occurring after the decision month, use the product of group average deviation from the long-term average and zone weight. This approach roughly approximates a 'best guess' scenario based on rain gauge observations - what should my precip for the remainder of the year look like given what I know by the decision month?
 	\item Inputs: \verb!stgg! (station gauge or grid cell precip record), \verb!stzone! (state zone), \verb!zonewt! (weights for state zone), \verb!styear! (year of interest), \verb!decision! (use 'decision under uncertainty' mode (default FALSE))
@@ -286,7 +286,7 @@ R_{total,d,i,t} = R_{d,t} + R_{oth,t} +  indem_{i,t}
 
 Base sales: 
 \begin{itemize}
-\item Function: \verb!CalculateExpSales! 
+\item Function: \verb!calculateExpSales! 
 \item Inputs: $h$ = \verb!herd! (herd size (number of cows, does not include calves)), \verb!calf.sell! (average percentage of calves sold), $\bar{w}$ = \verb!normal.wn.wt! (average calf weight at weaning under normal conditions (pounds)), $p_{t}$ = \verb!p.wn!(price of calves at weaning in year \(t\) (\$/pound))
 \end{itemize}
 
@@ -385,14 +385,14 @@ When drought occurs and no adaption is undertaken, revenues are affected by calf
 \item Function: \verb!calfWeanWeight!
 	\begin{itemize}
 	\item Description: Compute calf weights based on station/grid cell forage potential for a five-year period. Wean weights are computed for each of the five years as a summed product of the target location's forage potential weights and precipitation index by interval. 
-	\item Utilizes \verb!foragePWt! and \verb!calfDroughtWeight! functions.
+	\item Utilizes \verb!getForagePotential! and \verb!calfDroughtWeight! functions.
 	\item Inputs: $y_0$ = \verb!styr! (starting year of the five-year period)
 	\item Outputs: These are returned as a matrix of calf weights by year, \verb!calf_weights_ann!.
 	\end{itemize}
 \end{itemize}
 
 \begin{enumerate}
-\item Get forage weights for the years and zone with \verb!foragePWt! function.
+\item Get forage weights for the years and zone with \verb!getForagePotential! function.
 \item Calculate calf drought weight according to eq \ref{calfdroughtweight} with \verb!calfDroughtWeight! function.
 \end{enumerate}
 
@@ -868,7 +868,18 @@ Herd size in year $t$ is a function of herd size in the previous year, $\theta_{
 This implicitly assumes that all yearlings survive to become mature cows.
 
 
+
 \end{document}
+
+
+
+
+
+
+
+
+
+
 \section{Model Workflow}
 All functions are run within \verb!master.R! and call additional scripts from the \verb!R! folder.
 
@@ -986,8 +997,6 @@ In \verb!master.R!:
   * **SUMMARY,**
     * **FILL THIS IN!**
     
-    
-\section{Shiny App}
     
 
 

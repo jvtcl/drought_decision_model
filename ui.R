@@ -62,6 +62,15 @@ tagList(
   ),
   tags$script(
     '
+    Shiny.addCustomMessageHandler("scrollCallbackBottom",
+    function(msg) {
+    console.log(msg)
+    window.scrollTo(0,document.body.scrollHeight);
+    }
+    );'
+  ),
+  tags$script(
+    '
       Shiny.addCustomMessageHandler("scrollCallbackRain",
       function(msg) {
       console.log(msg)
@@ -226,6 +235,7 @@ tabsetPanel(id = "mainPanels",
           
           fluidPage(
 
+            
             uiOutput("pageOut"),
                     uiOutput("infoPane")
                     
@@ -240,4 +250,15 @@ tabsetPanel(id = "mainPanels",
 
 )
 )
+
+
+
+
+
+
+
+
+
+
+
 
