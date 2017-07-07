@@ -1,4 +1,5 @@
 ## Load Libraries
+install.packages("RMySQL", type = "source")
 library(plyr)
 library(dplyr)
 library(shiny)
@@ -13,7 +14,6 @@ library(magrittr)
 library(readr)
 library(V8)
 library(RMySQL)
-library(psych)
 library(scales)
 
 ## gird_base only needs to be loaded if we're going to be doing any raster stuff

@@ -10,8 +10,6 @@ RUN apt-get update \
   libxml2-dev \
   libv8-3.14-dev \
   && R -e "install.packages(c('leaflet', 'shinyBS', 'shinyjs', 'data.table', 'RColorBrewer', 'V8'))" \
-#  && R -e "install.packages('RMySQL', type='source')" \
-  && sudo apt-get install r-cran-rmysql \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
