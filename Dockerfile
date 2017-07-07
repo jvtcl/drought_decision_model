@@ -9,8 +9,9 @@ RUN apt-get update \
   libssl-dev \
   libxml2-dev \
   libv8-3.14-dev \
-  && R -e "install.packages(c('leaflet', 'shinyBS', 'shinyjs', 'data.table', 'RColorBrewer', 'V8'))" \
-  && R -e "install.packages('RMySQL', type='source')" \
+  libmariadb-client-lgpl-dev \
+  && R -e "install.packages('RMySQL', type= 'source')" \
+  && R -e "install.packages(c('leaflet', 'shinyBS', 'shinyjs', 'data.table', 'RColorBrewer', 'V8', 'dplyr', 'httr', 'readr', 'plyr', 'scales', 'shiny', 'shiny', 'markdown', 'ggplot2', 'magrittr'))" \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
