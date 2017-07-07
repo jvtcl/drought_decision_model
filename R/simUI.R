@@ -233,8 +233,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
           
           width = 220, height = "auto",
           wellPanel(
-            p(h3("Ranch Overview")), 
-            br(), 
+            p(h2("Ranch Overview")),
+            p(h3("Year ", i, "of ", simLength)),
             p(h4("Cattle Status:")), 
             if(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0))<100){
               
@@ -250,6 +250,16 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
                       placement = "left", 
                       trigger = "hover", 
                       options = list(container = "body")),
+            
+            p("Calf Production(%): ", prettyNum((myOuts[rv$page, wn.succ]*100), digits= 0 , big.mark=",", scientific=FALSE),
+            bsButton("weanPercentage", label="", icon = icon("question"), style="info", class="quest", size = "extra-small")),
+            bsPopover(id="weanPercentage", 
+                      title="Calf Production(%)", 
+                      content = paste0("placeholder for weaning percentage info"), 
+                      placement = "top",
+                      trigger = "hover",
+                      options = list(container = "body")
+                      ),
             
             p("Cattle in herd:",prettyNum(myOuts[rv$page, herd], digits = 0, big.mark=",", scientific=FALSE), 
               # Tooltip creation, a button with an icon and the popover for the "tip"
@@ -795,7 +805,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       geom_text(data = subset(plotOuts, `Value in $` !=0), aes(label = dollar(`Value in $`)), 
                 size = 5, position = position_stack(vjust = 0.5), angle = 90) +
       theme(legend.title = element_blank(), axis.title = element_text(size = 20), text = element_text(size = 20)) +
-      scale_fill_manual(values = c("#f4a460", "#85bb65")) +
+      scale_fill_manual(values = c("#f4c960", "#85bb65")) +
       labs(x="Year", y="Value in $")
     
   })

@@ -12,7 +12,7 @@ library(ggplot2)
 library(magrittr)
 library(readr)
 library(V8)
-library(googlesheets)
+library(RMySQL)
 library(scales)
 
 ## gird_base only needs to be loaded if we're going to be doing any raster stuff

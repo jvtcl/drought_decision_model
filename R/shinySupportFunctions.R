@@ -157,7 +157,7 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
     # 
     # ,
     br(),
-    p("Remember that if you do not have enough money in the bank to cover the cost of hay you will automatically borrow at a 6.5% interest."),
+    p("Remember that if you do not have enough money in the bank to cover the cost of hay you will automatically borrow at a 6.5% interest. Also, you do not need to specifically follow the recommended hay amounts - you can purchase any amount. "),
     numericInput(paste0("d", name, "adaptExpend"), "How much hay, if any, do you want to purchase for your herd?",
                 min = 0, max = adaptMax, value = 0, step = 100, width = "100%")
   )
@@ -199,7 +199,8 @@ getCowSell <- function(totalForage, wean, currentYear, name, myOuts){
       Use the information below to decide how many cows and calves you want to 
       sell this year."),
     br(),
-    
+    p("So far, for this year, your calf production rate has been", paste0(prettyNum((myOuts[currentYear, wn.succ]*100), digits= 0 , big.mark=",", scientific=FALSE),sep = ""), "%."),
+
     if((weanWeight)<600){
       h5(p("Your weaned calves weigh ", 
            span((weanWeight), 
@@ -240,10 +241,10 @@ getCowSell <- function(totalForage, wean, currentYear, name, myOuts){
               If your herd is larger than this you risk damaging your range and producing less grass for your herd."))),
     br(),
     sliderInput(paste0("calves", name, "Sale"), "How many calves do you want to sell?",
-                min = 0, max = calvesAvailable, value =  standardCalfSale, step = 1, width = "600px"),
-    # p(bsButton("calfherd", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"),bsPopover(id = "calfherd", title = "Calf Description",content = paste0("selling or keeping calves will affect your herd size in two years, when those calves could become mother cows."))),
+                min = round(calvesAvailable/2), max = calvesAvailable, value =  standardCalfSale, step = 1, width = "100%"),
+    
     sliderInput(paste0("cow", name, "Sale"), "How many cows do you want to sell?",
-                min = 0, max = myOuts[currentYear, herd], value = standardCowSale, step = 1, width = "600px"),
+                min = 0, max = myOuts[currentYear, herd], value = standardCowSale, step = 1, width = "100%"),
     br()
     
       )
