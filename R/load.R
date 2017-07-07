@@ -1,5 +1,4 @@
 ## Load Libraries
-install.packages("RMySQL", type = "source")
 library(plyr)
 library(dplyr)
 library(shiny)
