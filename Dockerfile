@@ -10,7 +10,7 @@ RUN apt-get update \
   libxml2-dev \
   libv8-3.14-dev \
   libmariadb-client-lgpl-dev \
-  && R -e "install.packages('RMySQL', type= 'source') \
+  && R -e "install.packages('RMySQL', type= 'source')" \
   && R -e "install.packages(c('leaflet', 'shinyBS', 'shinyjs', 'data.table', 'RColorBrewer', 'V8'))" \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
