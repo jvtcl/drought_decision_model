@@ -236,35 +236,11 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
             p(h2("Ranch Overview")),
             p(h3("Year ", i, "of ", simLength)),
             p(h4("Cattle Status:")), 
-            if(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0))<100){
-              
-              p("Range health(%):", span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)),style="color:red"), 
-                bsButton("infohealth", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
-            }else{
-              p("Range health(%):", span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)),style="color:green"),
-                bsButton("infohealth", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
-              
-            },
-            bsPopover(id = "infohealth", title = "Range Health",
-                      content = paste0("There is a delicate balance between the size of a ranch and the number of cattle that graze it. Overgrazing will lead to many problems that reduce the health and productivity of your rangeland. Without a healthy rangeland, you will incur increasingly higher hay costs and see lower cattle weights at sale. Also, these problems are exacerbated under dry conditions and drought, so be especially careful when this occurs and adjust your herd size with the weather."),
-                      placement = "left", 
-                      trigger = "hover", 
-                      options = list(container = "body")),
-            
-            p("Calf Production(%): ", prettyNum((myOuts[rv$page, wn.succ]*100), digits= 0 , big.mark=",", scientific=FALSE),
-            bsButton("weanPercentage", label="", icon = icon("question"), style="info", class="quest", size = "extra-small")),
-            bsPopover(id="weanPercentage", 
-                      title="Calf Production(%)", 
-                      content = paste0("placeholder for weaning percentage info"), 
-                      placement = "top",
-                      trigger = "hover",
-                      options = list(container = "body")
-                      ),
-            
-            p("Cattle in herd:",prettyNum(myOuts[rv$page, herd], digits = 0, big.mark=",", scientific=FALSE), 
+        
+            p("Cows in herd:",prettyNum(myOuts[rv$page, herd], digits = 0, big.mark=",", scientific=FALSE), 
               # Tooltip creation, a button with an icon and the popover for the "tip"
               bsButton("infocows", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small")),
-            bsPopover(id = "infocows", title = "Cattle in herd",
+            bsPopover(id = "infocows", title = "Cows in herd",
                       content = paste0("The carrying capacity of your range is about 600 cows. Your herd can grow or shrink depending on how many calves your cows produce and how many cows and calves you sell in the fall. But be careful: if your herd is too large, you will have less grass per cow and you may reduce your range health. If your herd is too small, you may lose out on profits."),
                       placement = "bottom", 
                       trigger = "hover", 
@@ -281,8 +257,34 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
                       placement = "bottom", 
                       trigger = "hover", 
                       options = list(container = "body")),
+            
+            p("Calf Production (%): ", prettyNum((myOuts[rv$page, wn.succ]*100), digits= 0 , big.mark=",", scientific=FALSE),
+              bsButton("weanPercentage", label="", icon = icon("question"), style="info", class="quest", size = "extra-small")),
+            bsPopover(id="weanPercentage", 
+                      title="Calf Production(%)", 
+                      content = paste0("placeholder for weaning percentage info"), 
+                      placement = "top",
+                      trigger = "hover",
+                      options = list(container = "body")
+            ),
+            
             br(),
             p(h4("Ranch Status:")),
+            if(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0))<100){
+              
+              p("Range health (%):", span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)),style="color:red"), 
+                bsButton("infohealth", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
+            }else{
+              p("Range health (%):", span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)),style="color:green"),
+                bsButton("infohealth", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
+              
+            },
+            bsPopover(id = "infohealth", title = "Range Health",
+                      content = paste0("There is a delicate balance between the size of a ranch and the number of cattle that graze it. Overgrazing will lead to many problems that reduce the health and productivity of your rangeland. Without a healthy rangeland, you will incur increasingly higher hay costs and see lower cattle weights at sale. Also, these problems are exacerbated under dry conditions and drought, so be especially careful when this occurs and adjust your herd size with the weather."),
+                      placement = "left", 
+                      trigger = "hover", 
+                      options = list(container = "body")),
+            
             if((prettyNum(get(paste0("bankBalance", name))(), digits = 0, big.mark=",", scientific=FALSE))>=0){
               p("Bank Balance: $", span(prettyNum(get(paste0("bankBalance", name))(), digits = 0, big.mark=",", scientific=FALSE),style="color:black"),             bsButton("infocash", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
             }else{
