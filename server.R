@@ -360,14 +360,7 @@ function(input, output, session) {
     js$closewindow();
     stopApp()
   })
-  
-  # Code to reset inputs on exit-----------------------------------------------
-  session$onSessionEnded(function() {
-    createOutputs(practiceRuns, simRuns, indem, indemprac)
-    js$reset()
-    stopApp()
-  })
-  
+
 }
 
 
