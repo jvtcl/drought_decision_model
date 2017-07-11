@@ -15,7 +15,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     if(!is.null(input[[paste0("insCont", name)]])){  
       if(input[[paste0("insCont", name)]] == 1){
         calvesAvailable <- 
-          myOuts[i, herd] * AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i - 1, total.forage], simRuns$normal.wn.succ)
+          myOuts[i, herd] * AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i , total.forage], simRuns$normal.wn.succ)
       }else{
         calvesAvailable <- myOuts[i, herd] * simRuns$normal.wn.succ
       }
@@ -498,7 +498,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   output[[paste0("cowSell", name)]] <- renderUI({
     req(input[[paste0("insCont", name)]])
     tagList(
-      getCowSell(get(paste0("totalForage", name))(), AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i - 1, total.forage], simRuns$normal.wn.succ), i, name, myOuts),
+      getCowSell(get(paste0("totalForage", name))(), AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i , total.forage], simRuns$normal.wn.succ), i, name, myOuts),
       plotOutput(paste0("cowPlot", name)),
       br(),
       p("Herd prediction details",bsButton("herdetails", label = "", icon = icon("question"), style = "info", class="inTextTips", size = "extra-small"),bsPopover(id = "herdetails", title = "Herd Prediction",content = paste0("Keep in mind that yearlings (weaned calves that are not yet producing calves) are not counted in these herd size numbers. You do not have the option to sell yearlings in this game. These herd size predictions also assume that you go back to normal culling and calf sale rates next year. For these reasons, your herd may not go all the way to 0 if you sell off all of your cows and calves."), 
@@ -770,7 +770,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
         herdy2 <- shinyHerd(herd_1 = herdy1,  # t-1 for year 2 is next years herd size
                             cull_1 = myOuts[1, cows.culled],  # we don't know how many cows they will cull next year. assume stability/default of 16% (draw from )
                             herd_2 = herdy0,  # t-2 for year 2 is this year
-                            calves_2 = (floor(herdy0 * AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i - 1, total.forage], simRuns$normal.wn.succ)) - calves),  # Calves in the herd this year minus those that are sold via the slider input
+                            calves_2 = (floor(herdy0 * AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i , total.forage], simRuns$normal.wn.succ)) - calves),  # Calves in the herd this year minus those that are sold via the slider input
                             deathRate = simRuns$death.rate) 
         
         years <- c("This Year","Next Year","In Two Years")
@@ -915,7 +915,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     disable(paste0("sell", name))
     disable(paste0("calves", name, "Sale"))
     disable(paste0("cow", name, "Sale"))
-    myOuts <<- updateOuts(wean = AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i - 1, total.forage], simRuns$normal.wn.succ), 
+    myOuts <<- updateOuts(wean = AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i , total.forage], simRuns$normal.wn.succ), 
                           totalForage = get(paste0("totalForage", name))(), calfSale = input[[paste0("calves", name, "Sale")]],
                           indem = indem[[i]], adaptExpend = input[[paste0("d", name, "adaptExpend")]], cowSales = input[[paste0("cow", name, "Sale")]], 
                           newHerd = get(paste0("herdSize", name))(), zones = get(paste0("currentZones", name))(), 
