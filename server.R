@@ -248,7 +248,7 @@ function(input, output, session) {
   # Observer to save real simulation inputs  
   observeEvent(input$saveInputs, {
     shinyjs::disable("saveInputs")
-    files <- gs_ls()$sheet_title
+
     
     # Determines last file number in directory    
     if(length(files) == 0){
