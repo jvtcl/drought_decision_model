@@ -556,7 +556,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
          h4("Other revenues and costs that will affect your income for the year include:
             operating costs, additional feed costs, interest earned or paid, 
             household expenses, and taxes.")
-       },
+       }
       # h5(p("Rain-index insurance payouts: $",
       #      span(prettyNum(get(paste0("indem", orgName))[[i]]$indemnity, digits = 2, big.mark = ",", scientific = FALSE),
       #           style = "font-weight:bold:font-size:Xlarge;color:green"),
@@ -598,28 +598,28 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       #      span(prettyNum(profit * (0.124 + 0.15 + 0.04), digits = 2, big.mark = ",", scientific = FALSE),
       #           style = "font-weight:bold:font-size:Xlarge;color:red"))),
       # 
-      # br(),
-      if(get(paste0("revenues", name))() + indem[[i]]$indemnity
-         - myOuts[i, herd] * simRuns$cow.cost - input[[paste0("d", name, "adaptExpend")]] - indem[[i]]$producer_prem > 0){
-
-        h4(p("",
-             span(prettyNum(profit - profit * (0.124 + 0.15 + 0.04),
-                            digits = 2, big.mark = ",", scientific = FALSE),
-                  style = "font-weight:bold:font-size:Xlarge;color:white")
-             # bsButton("totalProfits", label = "", icon = icon("question"), style = "info", class="inTextTips", size = "extra-small")
-             ))
-
-      }
-      else{
-        h4(p("Total profits: $",
-             span(prettyNum(get(paste0("revenues", name))() + indem[[i]]$indemnity
-                            - myOuts[i, herd] * simRuns$cow.cost - input[[paste0("d", name, "adaptExpend")]] - indem[[i]]$producer_prem,
-                            digits = 2, big.mark = ",", scientific = FALSE),
-
-                  style = "font-weight:bold:font-size:Xlarge;color:white")
-             # bsButton("totalProfits", label = "", icon = icon("question"), style = "info", class="inTextTips", size = "extra-small"))
-             ))
-      }
+      # br()
+      # ,
+      # if(get(paste0("revenues", name))() + indem[[i]]$indemnity
+      #    - myOuts[i, herd] * simRuns$cow.cost - input[[paste0("d", name, "adaptExpend")]] - indem[[i]]$producer_prem > 0){
+      #   h4(p("",
+      #        span(prettyNum(profit - profit * (0.124 + 0.15 + 0.04),
+      #                       digits = 2, big.mark = ",", scientific = FALSE),
+      #             style = "font-weight:bold:font-size:Xlarge;color:white")
+      #        # bsButton("totalProfits", label = "", icon = icon("question"), style = "info", class="inTextTips", size = "extra-small")
+      #        ))
+      # 
+      # }
+      # else{
+      #   h4(p("Total profits: $",
+      #        span(prettyNum(get(paste0("revenues", name))() + indem[[i]]$indemnity
+      #                       - myOuts[i, herd] * simRuns$cow.cost - input[[paste0("d", name, "adaptExpend")]] - indem[[i]]$producer_prem,
+      #                       digits = 2, big.mark = ",", scientific = FALSE),
+      # 
+      #             style = "font-weight:bold:font-size:Xlarge;color:white")
+      #        # bsButton("totalProfits", label = "", icon = icon("question"), style = "info", class="inTextTips", size = "extra-small"))
+      #        ))
+      # }
       # bsPopover(id = "totalProfits", title = "Total profits",
       #           content = paste0("Your profits are your revenues for the year minus your costs."),
       #           placement = "auto",
