@@ -223,8 +223,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       if(purchaseInsurance == TRUE) {
         uiOutput(paste0("premCheck", name))   
       },
-      tags$hr(style="border-color: darkgray;"),
-      span(rangeHealth(i, myOuts),style = "color:white"),
+      # tags$hr(style="border-color: darkgray;"),
+      # span(rangeHealth(i, myOuts),style = "color:white"),
       
       # Create an output for the sidebar widget on overall ranch status
       output[[paste0("infoPane", orgName)]] <- renderUI({
