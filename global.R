@@ -110,7 +110,7 @@ yearHandler <- paste0('if(typeMessage == ', 1:simLength, '){
 NUM_PAGES <- 5
 currentPage <- 1
 
-debugMode <<- TRUE
+debugMode <<- FALSE
 
 `%then%` <- shiny:::`%OR%`
 genericWrong <- "This is incorrect. Please try again."
