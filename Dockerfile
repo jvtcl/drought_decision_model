@@ -1,6 +1,6 @@
 FROM rocker/shiny
 
-MAINTAINER Max Joseph "maxwell.b.joseph@colorado.edu"
+MAINTAINER Max Roland "maxwell.roland@colorado.edu"
 
 # Install dependencies and Download and install shiny server
 RUN apt-get update \

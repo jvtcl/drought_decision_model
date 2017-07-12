@@ -300,6 +300,7 @@ createResultsFrame <- function(pars = NULL){
     sim_results[1, zone.change := 1]
     sim_results[1, Gt := 0]
     sim_results[1, forage.potential := 1]
+    sim_results[1, total.forage := 1]
     
   ## if pars isn't prsent fills in everything with 0's 
   }else{
