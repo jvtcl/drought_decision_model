@@ -900,7 +900,6 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   # Reactive to disable start simulation button after they're clicked
   observeEvent(input[[paste0("year", name, "Start")]], {
     shinyjs::disable(paste0("year", name, "Start"))
-    delay(100,session$sendCustomMessage(type = "scrollCallbackRain", paste0("rainGraph", i)))
   })
 
   observeEvent(rv$scrollPage, {
@@ -933,12 +932,10 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
                        value = tempValue)
     shinyjs::disable(paste0("year", name, "Summer"))
     shinyjs::disable(paste0("d", name, "adaptExpend"))
-    delay(100,session$sendCustomMessage(type = "scrollCallbackIns", paste0("rainGraphSep", i)))
   })
   
   observeEvent(input[[paste0("insCont", name)]], {
     shinyjs::disable(paste0("insCont", name))
-    delay(100,session$sendCustomMessage(type = "scrollCallbackCow", paste0("cowSell", i)))
   })
   
   # appendRangeHealth <- function(healthValue, rangeHealthList, currentYear){
