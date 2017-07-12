@@ -236,7 +236,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
             p(h2("Ranch Overview")),
             p(h3("Year ", i, "of ", simLength)),
             p(h4("Cattle Status:")), 
-
+            
+            p("Cows in herd:",prettyNum(myOuts[rv$page, herd], digits = 0, big.mark=",", scientific=FALSE), 
               # Tooltip creation, a button with an icon and the popover for the "tip"
               bsButton("infocows", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small")),
             bsPopover(id = "infocows", title = "Cows in herd",
@@ -260,8 +261,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
             p("Calf Production (%): ", prettyNum((myOuts[rv$page, wn.succ]*100), digits= 0 , big.mark=",", scientific=FALSE),
               bsButton("weanPercentage", label="", icon = icon("question"), style="info", class="quest", size = "extra-small")),
             bsPopover(id="weanPercentage", 
-                      title="Calf Production(%)", 
-                      content = paste0("This value represents the percentage of cows that gave birth to and are successfully raising a calf in your herd."), 
+                      title="Calf Production (%)", 
+                      content = paste0("This value is the percentage of your cows that have given birth to a live calf and are successfully raising it. Calf production rates depend on the condition of the cows. If your herd is underfed, then the calf production rate will go down for the year in which they are underfed and it will go down even further the following year."), 
                       placement = "top",
                       trigger = "hover",
                       options = list(container = "body")
@@ -297,17 +298,17 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
                       options = list(container = "body")),
             
             #if((prettyNum(myOuts[i, assets.cash], digits = 0,
-                          #big.mark=",", scientific=FALSE))>=0){
-              #p("Bank balance: $", span(prettyNum((myOuts[rv$page, assets.cash]), digits = 0, big.mark=",", scientific=FALSE), style="color:green"),
-                #bsButton("infocash", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
+            #big.mark=",", scientific=FALSE))>=0){
+            #p("Bank balance: $", span(prettyNum((myOuts[rv$page, assets.cash]), digits = 0, big.mark=",", scientific=FALSE), style="color:green"),
+            #bsButton("infocash", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
             #}else{p("Bank balance: $", networth, 
-                    #bsButton("infocash", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
+            #bsButton("infocash", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
             #},
             #bsPopover(id = "infocash", title = "Cash Assets",
-                      #content = paste0("If your balance falls below zero, you will automatically borrow money at 6.5% interest."),
-                      #placement = "bottom", 
-                      #trigger = "hover", 
-                      #options = list(container = "body")),
+            #content = paste0("If your balance falls below zero, you will automatically borrow money at 6.5% interest."),
+            #placement = "bottom", 
+            #trigger = "hover", 
+            #options = list(container = "body")),
             if((prettyNum((myOuts[rv$page, net.wrth] - myOuts[rv$page, assets.cash]), digits = 0,big.mark=",", scientific=FALSE)) > 0){
               p("Value of herd: $", span(prettyNum((myOuts[rv$page, assets.cow]), digits = 0,big.mark=",", scientific=FALSE), style="color:green"), 
                 bsButton("herdval", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
@@ -339,10 +340,10 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
         )
       })
       
-
       
-      )
-        }))
+      
+    )
+  }))
   
   # UI for winter Info
   output[[paste0("winterInfo", name)]] <- renderUI({
