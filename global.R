@@ -113,4 +113,4 @@ currentPage <- 1
 debugMode <<- TRUE
 
 `%then%` <- shiny:::`%OR%`
-genericWrong <- "This is incorrect please try again"
+genericWrong <- "This is incorrect. Please try again."
