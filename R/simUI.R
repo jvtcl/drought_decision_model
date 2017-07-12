@@ -36,7 +36,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     }
     if(!is.null(input[[paste0("year", name, "Summer")]])){  
       if(input[[paste0("year", name, "Summer")]] == 1){
-        balance <- balance - input[[paste0("d", name, "adaptExpend")]]
+        balance <- balance - get(paste0("hay", name))()
       }
     }
     if(!is.null(input[[paste0("insCont", name)]])){  
@@ -91,7 +91,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
                                  days.act = 180, current_herd = herd, intens.adj = adaptInten)
     
     # Calculate how much of the needed adaptation is being done
-    adaptPercent <- ifelse(fullAdaptCost == 0, 0, input[[paste0("d", name, "adaptExpend")]]/fullAdaptCost * (1 - forage.production))
+    adaptPercent <- ifelse(fullAdaptCost == 0, 0, get(paste0("hay", name))()/fullAdaptCost * (1 - forage.production))
 
     # Output new forage that includes forage and adaptation feed
     totalForage <- forage.production + adaptPercent
@@ -132,6 +132,25 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     # Calculate revenues for the current year based on slider position
     revenues <- cows * simRuns$p.cow + calves *  weanWeight * simRuns$p.wn[1]
     
+  }))
+  
+  # Reactive to clean adaptExpend and return numeric
+  assign(paste0("hay", name), reactive({
+    myReturn <- NULL
+    print(paste("hay entry", input[[paste0("d", name, "adaptExpend")]]))
+    adaptExpend <- input[[paste0("d", name, "adaptExpend")]]
+    print(paste("adapt", adaptExpend))
+    if(is.null(adaptExpend)){
+      myReturn <- 0
+    }else if(adaptExpend == ""){
+      myReturn <- 0
+    }else{
+      adaptExpend <- gsub(",", "", adaptExpend)
+      myReturn <- tryCatch(as.numeric(gsub("\\$", "", adaptExpend)),
+                           warning = function(war)return(NULL))
+    }
+    print(paste("returning", myReturn))
+    myReturn
   }))
   
   # UI elements to display outputs for each year-------------------------------
@@ -474,13 +493,13 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
               if(purchaseInsurance == TRUE) {
                 h4(paste0("After your expenditures on hay and insurance, your new bank balance is: $", 
                           prettyNum(myOuts[i, assets.cash] - 
-                                      indem[[i]]$producer_prem - input[[paste0("d", name, "adaptExpend")]], 
+                                      indem[[i]]$producer_prem - get(paste0("hay", name))(), 
                                     digits = 0, big.mark=",",scientific=FALSE)))  
               },
               if(purchaseInsurance == FALSE) {
                 h4(paste0("After your expenditures on hay, your new bank balance is: $", 
                           prettyNum(myOuts[i, assets.cash] - 
-                                      indem[[i]]$producer_prem - input[[paste0("d", name, "adaptExpend")]], 
+                                      indem[[i]]$producer_prem - get(paste0("hay", name))(), 
                                     digits = 0, big.mark=",",scientific=FALSE)))
               },
               actionButton(paste0("insCont", name), "Next")
@@ -516,7 +535,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   
   output[[paste0("profits", name)]] <- renderUI({
     req(input[[paste0("insCont", name)]])
-    profit <- get(paste0("revenues", name))() + indem[[i]]$indemnity - myOuts[i, herd] * simRuns$cow.cost - input[[paste0("d", name, "adaptExpend")]] - indem[[i]]$producer_prem
+    profit <- get(paste0("revenues", name))() + indem[[i]]$indemnity - myOuts[i, herd] * simRuns$cow.cost - get(paste0("hay", name))() - indem[[i]]$producer_prem
      tagList(
        tags$head(tags$style(HTML(
     ".inTextTips{
@@ -579,7 +598,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       #                 trigger = "hover",
       #                 options = list(container = "body")),
       # h5(p("Extra feed costs: $",
-      #     span(prettyNum(input[[paste0("d", name, "adaptExpend")]], digits = 2, big.mark = ",", scientific = FALSE),
+      #     span(prettyNum(get(paste0("hay", name))(), digits = 2, big.mark = ",", scientific = FALSE),
       #           style = "font-weight:bold:font-size:Xlarge;color:red"),
       #     bsButton("extraFeedCost", label = "", icon = icon("question"), style = "info", class="inTextTips", size = "extra-small"))),
       #     bsPopover(id = "extraFeedCost", title = "Extra feed costs",
@@ -603,7 +622,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       # br()
       # ,
       # if(get(paste0("revenues", name))() + indem[[i]]$indemnity
-      #    - myOuts[i, herd] * simRuns$cow.cost - input[[paste0("d", name, "adaptExpend")]] - indem[[i]]$producer_prem > 0){
+      #    - myOuts[i, herd] * simRuns$cow.cost - get(paste0("hay", name))() - indem[[i]]$producer_prem > 0){
       #   h4(p("",
       #        span(prettyNum(profit - profit * (0.124 + 0.15 + 0.04),
       #                       digits = 2, big.mark = ",", scientific = FALSE),
@@ -615,7 +634,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       # else{
       #   h4(p("Total profits: $",
       #        span(prettyNum(get(paste0("revenues", name))() + indem[[i]]$indemnity
-      #                       - myOuts[i, herd] * simRuns$cow.cost - input[[paste0("d", name, "adaptExpend")]] - indem[[i]]$producer_prem,
+      #                       - myOuts[i, herd] * simRuns$cow.cost - get(paste0("hay", name))() - indem[[i]]$producer_prem,
       #                       digits = 2, big.mark = ",", scientific = FALSE),
       # 
       #             style = "font-weight:bold:font-size:Xlarge;color:white")
@@ -637,6 +656,9 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   output[[paste0("continue", name)]] <- renderUI({
     if(!is.null(input[[paste0("year", name, "Start")]])){
       if(input[[paste0("year", name, "Start")]] == 1){
+        validate(
+          need(is.numeric(get(paste0("hay", name))()), "Please enter a valid number")
+        )
         tagList(
           actionButton(paste0("year", name, "Summer"), "Purchase Hay")
         )
@@ -693,16 +715,16 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     rv$scrollPage <- T
     fluidRow(
       if(myOuts[i, assets.cash] + indem[[i]]$indemnity - 
-         indem[[i]]$producer_prem - input[[paste0("d", name, "adaptExpend")]] > 0){
+         indem[[i]]$producer_prem - get(paste0("hay", name))() > 0){
         h4(p(accountTxt, 
              span(prettyNum(myOuts[i, assets.cash] + indem[[i]]$indemnity - 
-                              indem[[i]]$producer_prem - input[[paste0("d", name, "adaptExpend")]], 
+                              indem[[i]]$producer_prem - get(paste0("hay", name))(), 
                             digits = 0, big.mark=",",scientific=FALSE), style = "font-weight:bold:font-size:Xlarge;color:green")))
       }
       else{
         h4(p(accountTxt, 
              span(prettyNum(myOuts[i, assets.cash] + indem[[i]]$indemnity - 
-                              indem[[i]]$producer_prem - input[[paste0("d", name, "adaptExpend")]], 
+                              indem[[i]]$producer_prem - get(paste0("hay", name))(), 
                             digits = 0, big.mark=",",scientific=FALSE), style = "font-weight:bold:font-size:Xlarge;color:red")))
         
       }
@@ -918,7 +940,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     disable(paste0("cow", name, "Sale"))
     myOuts <<- updateOuts(wean = AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i , total.forage], simRuns$normal.wn.succ), 
                           totalForage = get(paste0("totalForage", name))(), calfSale = input[[paste0("calves", name, "Sale")]],
-                          indem = indem[[i]], adaptExpend = input[[paste0("d", name, "adaptExpend")]], cowSales = input[[paste0("cow", name, "Sale")]], 
+                          indem = indem[[i]], adaptExpend = get(paste0("hay", name))(), cowSales = input[[paste0("cow", name, "Sale")]], 
                           newHerd = get(paste0("herdSize", name))(), zones = get(paste0("currentZones", name))(), 
                           currentYear = i, ID = ID, time = startTime, oldOuts = myOuts)
   })
@@ -926,10 +948,6 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   
   # Disable continue button and adaptation slider after clicking
   observeEvent(input[[paste0("year", name, "Summer")]], {
-    tempValue <- gsub(",", "", input[[paste0("d", name, "adaptExpend")]])
-    tempValue <- gsub("//$", "", tempValue)
-    updateNumericInput(session, paste0("d", name, "adaptExpend"), 
-                       value = tempValue)
     shinyjs::disable(paste0("year", name, "Summer"))
     shinyjs::disable(paste0("d", name, "adaptExpend"))
   })
