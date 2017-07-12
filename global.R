@@ -95,9 +95,9 @@ simvars <- getSimVars(
 
 ## Create list of constant vars, state vars, and station gauges
 practiceRuns <- (append(append(station.gauge, constvars), (practiceVars)))
-practiceRuns$p.wn <- rep(1.30, length(practiceRuns$p.wn))
+practiceRuns$p.wn <- rep(1.40, length(practiceRuns$p.wn))
 simRuns <- (append(append(station.gauge, constvars), (simvars)))
-simRuns$p.wn <- rep(1.30, length(simRuns$p.wn))
+simRuns$p.wn <- rep(1.40, length(simRuns$p.wn))
 
 
 #### Additional Settings ####
