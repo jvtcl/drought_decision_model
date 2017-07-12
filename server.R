@@ -251,12 +251,12 @@ function(input, output, session) {
 
     
     # Determines last file number in directory    
-    if(length(files) == 0){
-      lastFile <- 0
-    }else{
-      lastFile <- regmatches(files, gregexpr('[0-9]+',files))
-      lapply(lastFile, as.numeric) %>% unlist() %>% max() -> lastFile
-    }
+    # if(length(files) == 0){
+    #   lastFile <- 0
+    # }else{
+    #   lastFile <- regmatches(files, gregexpr('[0-9]+',files))
+    #   lapply(lastFile, as.numeric) %>% unlist() %>% max() -> lastFile
+    # }
     
     # Prepare inputs for saving
     saveData <<- reactiveValuesToList(input)
