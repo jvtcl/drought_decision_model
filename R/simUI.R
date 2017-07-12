@@ -255,8 +255,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
             bsButton("weanPercentage", label="", icon = icon("question"), style="info", class="quest", size = "extra-small")),
             bsPopover(id="weanPercentage", 
                       title="Calf Production(%)", 
-                      content = paste0("Because of outside factors your ranch will not always produce one calf per one cow. This value represents the percentage of cows
-                                       that produced a calf in your herd."), 
+                      content = paste0("This value represents the percentage of cows that gave birth to and are successfully raising a calf in your herd."), 
                       placement = "top",
                       trigger = "hover",
                       options = list(container = "body")
