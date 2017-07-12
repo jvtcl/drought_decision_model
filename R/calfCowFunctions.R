@@ -7,11 +7,13 @@ AdjWeanSuccess <- function(totalForage, totalForage1ya, normal.wn.succ) {
   #  that gives a better idea of the relationship
   
   wn.succ <- NULL
-  if(totalForage < 1){
+  if(totalForage < 1 & totalForage1ya >= 1){
     wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage) * 2)))
-  }else if(totalForage1ya < 1){
-    wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage))))
-  }else{
+  }else if(totalForage >= 1 & totalForage1ya < 1){
+    wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage1ya) * 1.2)))
+  }else if(totalForage < 1 & totalForage1ya < 1){
+    wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage1ya) * 1.2)))  * (1 / (1 + exp(-(1 + totalForage)*2)))
+  }else if(totalForage >= 1 & totalForage1ya >= 1){
     wn.succ <- normal.wn.succ
   }
   return(wn.succ)
