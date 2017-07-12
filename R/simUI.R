@@ -1015,7 +1015,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     oldOuts[currentYear, cows.culled := cowSales]
     oldOuts[currentYear, zone.change := sum(zones)]
     oldOuts[pastYear, rangeHealth := ifelse((oldOuts[currentYear, zone.change] * 100) > 100, 100, round(oldOuts[currentYear, zone.change] * 100, 0))]
-    if(!debugMode){
+    if(debugMode){
       print(paste("forage production", whatIfForage(station.gauge, zones, oldOuts[currentYear, yr], currentHerd, carryingCapacity, 10, 11, "normal")))
       print(paste("adapt expend", adaptExpend))
       print(paste("adapt inten", adaptInten))

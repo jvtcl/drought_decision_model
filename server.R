@@ -86,12 +86,10 @@ function(input, output, session) {
         return(x)
       })
       myOuts[1, cost.ins := indemprac[[1]]$producer_prem]
-      print("its F")
     }else{ # Excuted for all users with insurance
       
       # Sets ins to false and resets all ins variables to zero, recreates output frames
       purchaseInsurance <<- TRUE
-      print("its T")
       indem <<- lapply(startYear:(startYear + simLength - 1), function(x){
         with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                   pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
