@@ -266,13 +266,18 @@ function(input, output, session) {
     
     # Saves data to MySQL
     withProgress(message = "Saving Data", value = 1/3, {
+      print("Saving data")
+      print("Connecting to MySQL server")
+      simSheet <- "mTurkRun1Sim"
       con <- dbConnect(MySQL(),
                        user = 'cowgame',
                        password = 'cowsrock',
                        host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
                        dbname = 'cowgame')
+      print("Connection successful, saving data")
       incProgress(1/3)
       dbWriteTable(conn = con, name = 'cowGameOutputs', value = as.data.frame(myOuts), overwrite=FALSE, append = TRUE)
+      print("Data save complete")
 
     })
     values$saveComplete <- TRUE
@@ -315,16 +320,19 @@ function(input, output, session) {
     saveData <- t(saveData)
     # Remove first row of variable names
     withProgress(message = "Saving Data", value = 1/3, {
+      print("Saving data")
+      print("Connecting to MySQL server")
+      pracSheet <- "mTurkRun1Practice"
       con <- dbConnect(MySQL(),
                        user = 'cowgame',
                        password = 'cowsrock',
                        host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
                        dbname = 'cowgame')
-
+      print("Connection successful, saving data")
       outputTable <- myOuts[1:6]
       incProgress(1/3)
-      dbWriteTable(conn = con, name = 'practiceGameOutputs', value = as.data.frame(outputTable), overwrite=FALSE, append = TRUE)
-      
+      dbWriteTable(conn = con, name = pracSheet, value = as.data.frame(outputTable), overwrite=FALSE, append = TRUE)
+      print("Data save complete")
     })
     values$practSaveComplete <- TRUE
     
