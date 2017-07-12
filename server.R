@@ -248,7 +248,7 @@ function(input, output, session) {
   # Observer to save real simulation inputs  
   observeEvent(input$saveInputs, {
     shinyjs::disable("saveInputs")
-    files <- gs_ls()$sheet_title
+
     
     # Determines last file number in directory    
     if(length(files) == 0){
@@ -281,7 +281,6 @@ function(input, output, session) {
   
   # Observer to save web inputs mid simulation, only for debug
   observeEvent(input$saveStateWeb, {
-    files <- gs_ls()$sheet_title
     
     if(length(files) == 0){
       lastFile <- 0
@@ -308,18 +307,7 @@ function(input, output, session) {
   
   
   observeEvent(input$savePracInputs, {
-    
-    # Currently this code isn't in use but I'm keeping it becuase it looks 
-    #   like the saving of inputs is a bit foobarred
-    
-    # files <- gs_ls()$sheet_title
-    # 
-    # if(length(files) == 0){
-    #   lastFile <- 0
-    # }else{
-    #   lastFile <- regmatches(files, gregexpr('[0-9]+',files))
-    #   lapply(lastFile, as.numeric) %>% unlist() %>% max() -> lastFile
-    # }
+
     saveData <<- reactiveValuesToList(input)
     # save(saveData, file = "newSave.RData")
     saveData <- inputToDF(saveData)
