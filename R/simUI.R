@@ -137,9 +137,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   # Reactive to clean adaptExpend and return numeric
   assign(paste0("hay", name), reactive({
     myReturn <- NULL
-    print(paste("hay entry", input[[paste0("d", name, "adaptExpend")]]))
     adaptExpend <- input[[paste0("d", name, "adaptExpend")]]
-    print(paste("adapt", adaptExpend))
     if(is.null(adaptExpend)){
       myReturn <- 0
     }else if(adaptExpend == ""){
@@ -149,7 +147,6 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       myReturn <- tryCatch(as.numeric(gsub("\\$", "", adaptExpend)),
                            warning = function(war)return(NULL))
     }
-    print(paste("returning", myReturn))
     myReturn
   }))
   
