@@ -164,10 +164,12 @@ function(input, output, session) {
                               scientific = FALSE), "."))), 
                 # With a conversation rate of $500,000 of simulation money to $1 of MTurk bonus money, you've earned $", 
                 # round(myOuts$net.wrth[practiceLength + 1] * 1/simRuns$mturk.conv, 2),"."))),
-        h4(p(paste0("This is a practice simulation, so the money you have earned in this simulation does not count."))),
+        h4(p(paste0("This is a practice simulation, so the money you have earned
+                    in this simulation does not count."))),
         br(),
-        h4("The practice simulation is now over. In the next section, you will complete the 10 round game that will affect your 
-           chances at winning the bonus gift card."),
+        h4("The practice simulation is now over. In the next section, you will
+           start fresh and complete the 10 round game that will count for your 
+           chance to win an MTurk bonus."),
         hide("infoPanePrac"),
         actionButton("savePracInputs", "Save practice round"),
         uiOutput("practComplete")
