@@ -1,4 +1,3 @@
-
 function(input, output, session) {
   
   ## Calcualte indemnities for all years of the simulation
