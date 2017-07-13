@@ -276,7 +276,7 @@ function(input, output, session) {
                        dbname = 'cowgame')
       print("Connection successful, saving data")
       incProgress(1/3)
-      dbWriteTable(conn = con, name = 'cowGameOutputs', value = as.data.frame(myOuts), overwrite=FALSE, append = TRUE)
+      dbWriteTable(conn = con, name = simSheet, value = as.data.frame(myOuts), overwrite=FALSE, append = TRUE)
       print("Data save complete")
 
     })
