@@ -401,7 +401,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     if(!debugMode & purchaseInsurance == T){
       req(userPay == round(indem[[i]]$producer_prem, 0), genericWrong)
     }
-    rv$scrollPage <- T
+    if(purchaseInsurance)rv$scrollPage <- T
     actionButton(paste0("year", name, "Start"), "Next")
   })
   
@@ -724,7 +724,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       txtInsert <- ""
     }
     accountTxt <- paste0("After your expenditures on hay ", txtInsert, "your new bank balance is: $")
-    rv$scrollPage <- T
+    if(purchaseInsurance)rv$scrollPage <- T
     fluidRow(
       if(myOuts[i, assets.cash] + indem[[i]]$indemnity - 
          indem[[i]]$producer_prem - get(paste0("hay", name))() > 0){
