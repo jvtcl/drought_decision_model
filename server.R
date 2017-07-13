@@ -268,7 +268,7 @@ function(input, output, session) {
     withProgress(message = "Saving Data", value = 1/3, {
       print("Saving data")
       print("Connecting to MySQL server")
-      simSheet <- "mTurkRun1Sim"
+      simSheet <- "cowGameOutputs"
       con <- dbConnect(MySQL(),
                        user = 'cowgame',
                        password = 'cowsrock',
@@ -322,7 +322,7 @@ function(input, output, session) {
     withProgress(message = "Saving Data", value = 1/3, {
       print("Saving data")
       print("Connecting to MySQL server")
-      pracSheet <- "mTurkRun1Practice"
+      pracSheet <- "practiceGameOutputs"
       con <- dbConnect(MySQL(),
                        user = 'cowgame',
                        password = 'cowsrock',
