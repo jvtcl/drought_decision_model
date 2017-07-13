@@ -237,7 +237,7 @@ tabsetPanel(id = "mainPanels",
 
             
             uiOutput("pageOut"),
-                    uiOutput("infoPane")
+                    uiOutput("infoPaneMain")
                     
           )
           

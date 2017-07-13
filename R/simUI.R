@@ -17,12 +17,27 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
         calvesAvailable <- 
           myOuts[i, herd] * AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i , total.forage], simRuns$normal.wn.succ)
       }else{
-        calvesAvailable <- myOuts[i, herd] * simRuns$normal.wn.succ
+        calvesAvailable <- myOuts[i, herd] * AdjWeanSuccess(1, myOuts[i , total.forage], simRuns$normal.wn.succ)
       }
     }else{
-      calvesAvailable <- myOuts[i, herd] * simRuns$normal.wn.succ
+      calvesAvailable <- myOuts[i, herd] * AdjWeanSuccess(1, myOuts[i , total.forage], simRuns$normal.wn.succ)
     }
     return(calvesAvailable)
+  }))
+  
+  # Reactive to track current calf production
+  assign(paste0("calfPro", name), reactive({
+    if(!is.null(input[[paste0("insCont", name)]])){  
+      if(input[[paste0("insCont", name)]] == 1){
+        calfPro <- 
+          AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i , total.forage], simRuns$normal.wn.succ)
+      }else{
+        calfPro <- AdjWeanSuccess(1, myOuts[i , total.forage], simRuns$normal.wn.succ)
+      }
+    }else{
+      calfPro <- AdjWeanSuccess(1, myOuts[i , total.forage], simRuns$normal.wn.succ)
+    }
+    return(calfPro)
   }))
   
   # Tracks current bank balance throughout the year adjusting for insurance and
@@ -274,7 +289,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
                       trigger = "hover", 
                       options = list(container = "body")),
             
-            p("Calf Production (%): ", prettyNum((myOuts[rv$page, wn.succ]*100), digits= 0 , big.mark=",", scientific=FALSE),
+            p("Calf Production (%): ", prettyNum((get(paste0("calfPro", name))()*100), digits= 0 , big.mark=",", scientific=FALSE),
               bsButton("weanPercentage", label="", icon = icon("question"), style="info", class="quest", size = "extra-small")),
             bsPopover(id="weanPercentage", 
                       title="Calf Production (%)", 
@@ -386,7 +401,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     if(!debugMode & purchaseInsurance == T){
       req(userPay == round(indem[[i]]$producer_prem, 0), genericWrong)
     }
-    rv$scrollPage <- T
+    if(purchaseInsurance)rv$scrollPage <- T
     actionButton(paste0("year", name, "Start"), "Next")
   })
   
@@ -709,7 +724,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       txtInsert <- ""
     }
     accountTxt <- paste0("After your expenditures on hay ", txtInsert, "your new bank balance is: $")
-    rv$scrollPage <- T
+    if(purchaseInsurance)rv$scrollPage <- T
     fluidRow(
       if(myOuts[i, assets.cash] + indem[[i]]$indemnity - 
          indem[[i]]$producer_prem - get(paste0("hay", name))() > 0){
