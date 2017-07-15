@@ -272,7 +272,11 @@ function(input, output, session) {
                        host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
                        dbname = 'cowgame')
       incProgress(1/3)
-      dbWriteTable(conn = con, name = 'cowGameOutputs', value = as.data.frame(myOuts), overwrite=FALSE, append = TRUE)
+      dbWriteTable(conn = con, 
+                   name = 'cowGameOutputs', 
+                   value = as.data.frame(myOuts), 
+                   overwrite=FALSE, 
+                   append = TRUE)
 
     })
     values$saveComplete <- TRUE
@@ -323,7 +327,11 @@ function(input, output, session) {
 
       outputTable <- myOuts[1:6]
       incProgress(1/3)
-      dbWriteTable(conn = con, name = 'practiceGameOutputs', value = as.data.frame(outputTable), overwrite=FALSE, append = TRUE)
+      dbWriteTable(conn = con, 
+                   name = 'practiceGameOutputs', 
+                   value = as.data.frame(outputTable), 
+                   overwrite = FALSE, 
+                   append = TRUE)
       
     })
     values$practSaveComplete <- TRUE
