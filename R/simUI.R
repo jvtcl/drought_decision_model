@@ -264,6 +264,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
           
           width = 225, height = "auto",
           wellPanel(
+            p("mTurk ID"), 
+            p(ID),
             p(h2("Ranch Overview")),
             p(h3("Year ", i, "of ", simLength)),
             p(h4("Cattle Status:")), 
