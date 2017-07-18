@@ -1,4 +1,7 @@
-function(input, output, session) {
+shinyServer(function(input, output, session) {
+  
+  source("R/simUI.R")
+  source("R/shinySupportFunctions.R")
   
   ## Calcualte indemnities for all years of the simulation
   indem <- lapply(startYear:(startYear + simLength - 1), function(x){
@@ -356,6 +359,6 @@ function(input, output, session) {
     stopApp()
   })
 
-}
+})
 
 
