@@ -275,10 +275,10 @@ createResultsFrame <- function(pars = NULL){
   Outputs:
   sim_results = data table to for filling in future results
   "
-  resultNames <- c("yr","adapt_choice","rev.calf", "rev.ins","rev.int", 
+  resultNames <- c("yr","adapt_choice","rev.calf", "rev.cow", "rev.ins","rev.int", 
                    "rev.tot", "cost.op", "cost.ins", "cost.adpt",
-                   "cost.int", "cost.tot", "profit", "taxes", "aftax.inc", 
-                   "cap.sales", "cap.purch", "cap.taxes", "assets.cow", 
+                   "cost.int", "cost.tot", "profit", "taxes", "aftax.savings", 
+                   "assets.cow", 
                    "assets.cash", "net.wrth", "wn.succ", "forage.production", 
                    "herd", "calves.sold", "cows.culled", "zone.change", "Gt",
                    "forage.potential", "rangeHealth")
@@ -287,9 +287,9 @@ createResultsFrame <- function(pars = NULL){
     sim_results <- data.table(matrix(0, pars$sim_length + 1, length(resultNames)))
     setnames(sim_results, resultNames )
     sim_results[1, herd := pars$herd]
-    sim_results[1, assets.cow := with(pars, CalcCowAssets(t = 1, herd = herd, p.cow = p.cow))]
+    sim_results[1, assets.cow := with(pars, herd * p.cow)]
     #The line directly below sets bank balance to 90000. column 19 is assets.cash. 
-    sim_results[1,19] = 90000
+    sim_results[1, assets.cash := pars$assets.cash]
     sim_results[1, net.wrth := assets.cow + assets.cash]
     sim_results[, adapt_choice := as.character(adapt_choice)]
     sim_results[1, adapt_choice := "noadpt"]

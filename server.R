@@ -279,7 +279,11 @@ shinyServer(function(input, output, session) {
                        dbname = 'cowgame')
       print("Connection successful, saving data")
       incProgress(1/3)
-      dbWriteTable(conn = con, name = simSheet, value = as.data.frame(myOuts), overwrite=FALSE, append = TRUE)
+      dbWriteTable(conn = con, 
+                   name = 'cowGameOutputs', 
+                   value = as.data.frame(myOuts), 
+                   overwrite=FALSE, 
+                   append = TRUE)
       print("Data save complete")
 
     })
@@ -334,7 +338,11 @@ shinyServer(function(input, output, session) {
       print("Connection successful, saving data")
       outputTable <- myOuts[1:6]
       incProgress(1/3)
-      dbWriteTable(conn = con, name = pracSheet, value = as.data.frame(outputTable), overwrite=FALSE, append = TRUE)
+      dbWriteTable(conn = con, 
+                   name = 'practiceGameOutputs', 
+                   value = as.data.frame(outputTable), 
+                   overwrite = FALSE, 
+                   append = TRUE)
       print("Data save complete")
     })
     values$practSaveComplete <- TRUE
