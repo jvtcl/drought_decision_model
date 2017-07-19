@@ -285,6 +285,9 @@ shinyServer(function(input, output, session) {
                    overwrite=FALSE, 
                    append = TRUE)
       print("Data save complete")
+      print("Disconnecting from MySQL Server")
+      dbDisconnect(conn=con)
+      print("Disconnect complete")
 
     })
     values$saveComplete <- TRUE
@@ -344,6 +347,9 @@ shinyServer(function(input, output, session) {
                    overwrite = FALSE, 
                    append = TRUE)
       print("Data save complete")
+      print("Disconnecting from MySQL Server")
+      dbDisconnect(conn=con)
+      print("Disconnect complete")
     })
     values$practSaveComplete <- TRUE
     
