@@ -230,35 +230,11 @@ tabsetPanel(id = "mainPanels",
                                     border-color: rgb(255,255,255);
                                     background-color: rgb(255, 255, 255);"
                       ))),
-          
-          
-          
           fluidPage(
-
-            
             uiOutput("pageOut"),
                     uiOutput("infoPaneMain")
-                    
           )
-          
-          
  )
- 
-  
-)
-
-
 )
 )
-
-
-
-
-
-
-
-
-
-
-
-
+)
