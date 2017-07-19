@@ -323,7 +323,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
                 bsButton("infocash", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
             },
             bsPopover(id = "infocash", title = "Cash Assets",
-                      content = paste0("If your balance falls below zero, you will automatically borrow money at 6.5% interest."),
+                      content = paste0("A positive balance earns interest of 5%. If your balance falls below zero, you will automatically borrow money at 5% interest."),
                       placement = "bottom", 
                       trigger = "hover", 
                       options = list(container = "body")),
@@ -336,7 +336,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
             #bsButton("infocash", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
             #},
             #bsPopover(id = "infocash", title = "Cash Assets",
-            #content = paste0("If your balance falls below zero, you will automatically borrow money at 6.5% interest."),
+            #content = paste0("If your balance falls below zero, you will automatically borrow money at 5% interest."),
             #placement = "bottom", 
             #trigger = "hover", 
             #options = list(container = "body")),
