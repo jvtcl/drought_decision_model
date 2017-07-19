@@ -1,5 +1,5 @@
-simCreator <- function(input, output, session, i, rv, simLength, startYear, myOuts, indem, purchaseInsurance,
-                     whatifIndem, name = ""){
+simCreator <- function(input, output, session, i, rv, simLength, startYear, 
+                       myOuts, indem, purchaseInsurance, whatifIndem, name = ""){
   pageScroll <- F
   # orgName preserves the orginal name (either "" for the real simulation 
   #   or prac for practice), name is used at the end of all objects to
@@ -14,13 +14,17 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   assign(paste0("calvesAvailable", name), reactive({
     if(!is.null(input[[paste0("insCont", name)]])){  
       if(input[[paste0("insCont", name)]] == 1){
-        calvesAvailable <- 
-          myOuts[i, herd] * AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i , total.forage], simRuns$normal.wn.succ)
+        calvesAvailable <- myOuts[i, herd] * 
+          AdjWeanSuccess(get(paste0("totalForage", name))(), 
+                         myOuts[i , total.forage], 
+                         simRuns$normal.wn.succ)
       }else{
-        calvesAvailable <- myOuts[i, herd] * AdjWeanSuccess(1, myOuts[i , total.forage], simRuns$normal.wn.succ)
+        calvesAvailable <- myOuts[i, herd] * 
+          AdjWeanSuccess(1, myOuts[i , total.forage], simRuns$normal.wn.succ)
       }
     }else{
-      calvesAvailable <- myOuts[i, herd] * AdjWeanSuccess(1, myOuts[i , total.forage], simRuns$normal.wn.succ)
+      calvesAvailable <- myOuts[i, herd] * 
+        AdjWeanSuccess(1, myOuts[i , total.forage], simRuns$normal.wn.succ)
     }
     return(calvesAvailable)
   }))
@@ -30,12 +34,15 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     if(!is.null(input[[paste0("insCont", name)]])){  
       if(input[[paste0("insCont", name)]] == 1){
         calfPro <- 
-          AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i , total.forage], simRuns$normal.wn.succ)
+          AdjWeanSuccess(get(paste0("totalForage", name))(), 
+                         myOuts[i , total.forage], simRuns$normal.wn.succ)
       }else{
-        calfPro <- AdjWeanSuccess(1, myOuts[i , total.forage], simRuns$normal.wn.succ)
+        calfPro <- AdjWeanSuccess(1, myOuts[i , total.forage], 
+                                  simRuns$normal.wn.succ)
       }
     }else{
-      calfPro <- AdjWeanSuccess(1, myOuts[i , total.forage], simRuns$normal.wn.succ)
+      calfPro <- AdjWeanSuccess(1, myOuts[i , total.forage], 
+                                simRuns$normal.wn.succ)
     }
     return(calfPro)
   }))
@@ -96,17 +103,21 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     
     # Calculate available forage produced on the land using Nov-Nov as a year
     # forageProduction = 1 is full feed for a cow-calf pair
-    forage.production <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 10, 11, "normal")
+    forage.production <- whatIfForage(station.gauge, zones, myYear, herd, 
+                                      carryingCapacity, 10, 11, "normal")
 
     # Calculate adaptation intensity based on forage production
     adaptInten <- calculateAdaptationIntensity(forage.production)
     
     # Calculate adaptation cost
     fullAdaptCost <-getAdaptCost(adpt_choice = "feed", pars = simRuns, 
-                                 days.act = 180, current_herd = herd, intens.adj = adaptInten)
+                                 days.act = 180, current_herd = herd, 
+                                 intens.adj = adaptInten)
     
     # Calculate how much of the needed adaptation is being done
-    adaptPercent <- ifelse(fullAdaptCost == 0, 0, get(paste0("hay", name))()/fullAdaptCost * (1 - forage.production))
+    adaptPercent <- ifelse(fullAdaptCost == 0, 0, 
+                           get(paste0("hay", name))()/fullAdaptCost * 
+                             (1 - forage.production))
 
     # Output new forage that includes forage and adaptation feed
     totalForage <- forage.production + adaptPercent
@@ -194,41 +205,70 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
         background-color: rgb(255, 255, 255);"))),
       br(),
       h3(paste0("Year ", i,": Winter Finance Assessment")),
-      p("Before calving season begins, it is time to take account of your herd, range, and financial health."),
+      p("Before calving season begins, it is time to take account of your herd, 
+        range, and financial health."),
       br(),
       plotOutput(paste0("worthPlot", name)),
       tags$li(p("Your herd has ", 
-                span(prettyNum(myOuts[i, herd], digits = 0, big.mark=",", scientific=FALSE),style="font-weight:bold;font-size:large"), 
-                
-                
-                " cows, not including calves ",bsButton("calfdesc", label = "", icon = icon("question"), style = "info", class="inTextTips", size = "extra-small"),bsPopover(id = "calfdesc", title = "Calf Description",content = paste0("Calves are born in early spring and are raised on milk from their mother until they reach a weight of about 600 pounds.Once the calves stop taking milk from their mothers they arecalled weaned calves."))," or yearlings.",bsButton("yearlingdesc", label = "", icon = icon("question"), style = "info", class="inTextTips", size = "extra-small"),bsPopover(id = "yearlingdesc", title = "Yearling Description",content = paste0("These are cows that are weaned, but not yet reproducing")),"")),
-      tags$li(p("At a rate of $500 per cow, the current annual operating cost for your herd is $", span(prettyNum(myOuts[i, herd]*simRuns$cow.cost, big.mark=",",scientific=FALSE), style = "font-weight:bold;font-size:large"))),
-      tags$li(p("Your annual personal expenses are $", span("60,000.", style = "font-weight:bold;font-size:large"))),
-      
+                span(prettyNum(myOuts[i, herd], digits = 0, big.mark=",", 
+                               scientific=FALSE),
+                     style="font-weight:bold;font-size:large"), 
+                " cows, not including calves ",
+                bsButton("calfdesc", label = "", icon = icon("question"), 
+                         style = "info", class="inTextTips", size = "extra-small"),
+                bsPopover(id = "calfdesc", title = "Calf Description",
+                          content = paste0("Calves are born in early spring and are raised on milk from their mother until they reach a weight of about 600 pounds.Once the calves stop taking milk from their mothers they arecalled weaned calves.")),
+                " or yearlings.",
+                bsButton("yearlingdesc", label = "", icon = icon("question"), 
+                         style = "info", class="inTextTips", size = "extra-small"),
+                bsPopover(id = "yearlingdesc", title = "Yearling Description",
+                          content = paste0("These are cows that are weaned, but not yet reproducing")),"")),
+      tags$li(p("At a rate of $500 per cow, the current annual operating cost 
+                for your herd is $", 
+                span(prettyNum(myOuts[i, herd]*simRuns$cow.cost, big.mark=",",
+                               scientific=FALSE), 
+                     style = "font-weight:bold;font-size:large"))),
+      tags$li(p("Your annual personal expenses are $", 
+                span("60,000.", style = "font-weight:bold;font-size:large"))),
       
       if(prettyNum(myOuts[i, assets.cash], digits = 0)<0){
-        tags$li(p("Your bank balance is $", span(prettyNum(myOuts[i, assets.cash], digits = 0,
-                                                           big.mark=",", scientific=FALSE),style="font-weight:bold;font-size:large;color:red")))
+        tags$li(p("Your bank balance is $", 
+                  span(prettyNum(myOuts[i, assets.cash], digits = 0,
+                                 big.mark=",", scientific=FALSE),
+                       style="font-weight:bold;font-size:large;color:red")))
       }else{
-        tags$li(p("Your bank balance is $", span(prettyNum(myOuts[i, assets.cash], digits = 0,
-                                                           big.mark=",", scientific=FALSE),style="font-weight:bold;font-size:large;color:green")))
+        tags$li(p("Your bank balance is $", 
+                  span(prettyNum(myOuts[i, assets.cash], digits = 0,
+                                 big.mark=",", scientific=FALSE),
+                       style="font-weight:bold;font-size:large;color:green")))
       }
       
       ,
       if((prettyNum(myOuts[i, net.wrth], digits = 0)>0)){
         tags$li(p("Your current net worth, including cows and your bank balance, is $", 
-                  span(prettyNum(myOuts[i, net.wrth], digits = 0, big.mark=",", scientific=FALSE),style="font-weight:bold;font-size:large;color:green"), "."))
+                  span(prettyNum(myOuts[i, net.wrth], digits = 0, big.mark=",", 
+                                 scientific=FALSE),
+                       style="font-weight:bold;font-size:large;color:green"), "."))
       }else{
         tags$li(p("Your current net worth, including cows and your bank balance, is $", 
-                  span(prettyNum(myOuts[i, net.wrth], digits = 0, big.mark=",", scientific=FALSE),style="font-weight:bold;font-size:large;color:red"), "."))
+                  span(prettyNum(myOuts[i, net.wrth], digits = 0, big.mark=",", 
+                                 scientific=FALSE),
+                       style="font-weight:bold;font-size:large;color:red"), "."))
       },
       
       br(),
       h4("Range Condition"),
-      if(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0))<100){
-        p("Your range condition is currently at ", span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)),style="font-weight:bold;font-size:large;color:red"), "%")
+      if(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, 
+                round(sum(get(paste0("currentZones", name))()) * 100, 0))<100){
+        p("Your range condition is currently at ", 
+          span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, 
+                      round(sum(get(paste0("currentZones", name))()) * 100, 0)),
+               style="font-weight:bold;font-size:large;color:red"), "%")
       }else{
-        p("Your range condition is currently at ", span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)),style="font-weight:bold;font-size:large;color:green"), "%")
+        p("Your range condition is currently at ", 
+          span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, 
+                      round(sum(get(paste0("currentZones", name))()) * 100, 0)),
+               style="font-weight:bold;font-size:large;color:green"), "%")
       },
       plotOutput(paste0("RangeHealthPlot", name)),
       br(),
@@ -237,9 +277,11 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       },
       if(purchaseInsurance == TRUE) {
         p("Your rainfall-index insurance premium is due. You owe $", 
-          span(prettyNum(myOuts[i, cost.ins], digits = 0, big.mark=",",scientific=FALSE),style="font-weight:bold;font-size:large;color:red"), ". Please
-          enter this amount below to pay your insurance bill.",
-          bsButton("insurance", label = "", icon = icon("question"), style = "info", class="inTextTips", size = "extra-small"),
+          span(prettyNum(myOuts[i, cost.ins], digits = 0, big.mark=",", 
+              scientific=FALSE),style="font-weight:bold;font-size:large;color:red"), 
+          ". Please enter this amount below to pay your insurance bill.",
+          bsButton("insurance", label = "", icon = icon("question"), 
+                   style = "info", class="inTextTips", size = "extra-small"),
           bsPopover(id = "insurance", title = "Insurance",
                     content = paste0("The rainfall each year is unpredictable, but it can have a big impact on your bottom line. To help protect income, ranchers purchase insurance that will result in a payment if growing season rainfall is below normal. The only months that matter for your payout are May, June, July and August. The worse the drought, the bigger the check. Each year, any payouts are received at the end of August."),
                     placement = "auto", 
@@ -248,8 +290,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       },
       if(purchaseInsurance == TRUE) {
         textInput(paste0("insurancePremium", name), 
-                  "Please type the amount of the insurance premium below and to pay your bill and continue.",
-                  width = "100%")   
+                  "Please type the amount of the insurance premium below and to 
+                  pay your bill and continue.", width = "100%")   
       },
       if(purchaseInsurance == TRUE) {
         uiOutput(paste0("premCheck", name))   
@@ -260,17 +302,18 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
       # Create an output for the sidebar widget on overall ranch status
       output[[paste0("infoPane", orgName)]] <- renderUI({
         fixedPanel(
-          draggable = FALSE, top = 70, left = "auto", right = 20, bottom = "auto",
-          
-          width = 225, height = "auto",
+          draggable = FALSE, top = 70, left = "auto", right = 20, 
+          bottom = "auto", width = 225, height = "auto",
           wellPanel(
             p(h2("Ranch Overview")),
             p(h3("Year ", i, "of ", simLength)),
             p(h4("Cattle Status:")), 
             
-            p("Cows in herd:",prettyNum(myOuts[rv$page, herd], digits = 0, big.mark=",", scientific=FALSE), 
+            p("Cows in herd:",prettyNum(myOuts[rv$page, herd], digits = 0, 
+                                        big.mark=",", scientific=FALSE), 
               # Tooltip creation, a button with an icon and the popover for the "tip"
-              bsButton("infocows", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small")),
+              bsButton("infocows", label = "", icon = icon("question"), 
+                       style = "info", class="quest", size = "extra-small")),
             bsPopover(id = "infocows", title = "Cows in herd",
                       content = paste0("The carrying capacity of your range is about 600 cows. Your herd can grow or shrink depending on how many calves your cows produce and how many cows and calves you sell in the fall. But be careful: if your herd is too large, you will have less grass per cow and you may reduce your range health. If your herd is too small, you may lose out on profits."),
                       placement = "bottom", 
@@ -279,18 +322,24 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
             ),
             
             
-            p("Calves in herd:", prettyNum(get(paste0("calvesAvailable", name))(), digits = 0, big.mark=",", scientific=FALSE),
+            p("Calves in herd:", 
+              prettyNum(get(paste0("calvesAvailable", name))(), digits = 0, 
+                        big.mark=",", scientific=FALSE),
               
               
-              bsButton("infocalves", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small")),
-            bsPopover(id = "infocalves", title = "Calves in herd",
-                      content = paste0("Your revenues will primarily depend on how many calves you sell and how much each calf weighs."),
-                      placement = "bottom", 
-                      trigger = "hover", 
-                      options = list(container = "body")),
+              bsButton("infocalves", label = "", icon = icon("question"), 
+                       style = "info", class="quest", size = "extra-small")),
+              bsPopover(id = "infocalves", title = "Calves in herd",
+                        content = paste0("Your revenues will primarily depend on how many calves you sell and how much each calf weighs."),
+                        placement = "bottom", 
+                        trigger = "hover", 
+                        options = list(container = "body")),
             
-            p("Calf Production (%): ", prettyNum((get(paste0("calfPro", name))()*100), digits= 0 , big.mark=",", scientific=FALSE),
-              bsButton("weanPercentage", label="", icon = icon("question"), style="info", class="quest", size = "extra-small")),
+            p("Calf Production (%): ", 
+              prettyNum((get(paste0("calfPro", name))()*100), digits= 0 , 
+                        big.mark=",", scientific=FALSE),
+              bsButton("weanPercentage", label="", icon = icon("question"), 
+                       style="info", class="quest", size = "extra-small")),
             bsPopover(id="weanPercentage", 
                       title="Calf Production (%)", 
                       content = paste0("This value is the percentage of your cows that have given birth to a live calf and are successfully raising it. Calf production rates depend on the condition of the cows. If your herd is underfed, then the calf production rate will go down for the year in which they are underfed and it will go down even further the following year."), 
@@ -301,7 +350,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
             
             br(),
             p(h4("Ranch Status:")),
-            if(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0))<100){
+            if(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, 
+                      round(sum(get(paste0("currentZones", name))()) * 100, 0))<100){
               
               p("Range health (%):", span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)),style="color:red"), 
                 bsButton("infohealth", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
@@ -340,12 +390,20 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
             #placement = "bottom", 
             #trigger = "hover", 
             #options = list(container = "body")),
-            if((prettyNum((myOuts[rv$page, net.wrth] - myOuts[rv$page, assets.cash]), digits = 0,big.mark=",", scientific=FALSE)) > 0){
-              p("Value of herd: $", span(prettyNum((myOuts[rv$page, assets.cow]), digits = 0,big.mark=",", scientific=FALSE), style="color:green"), 
-                bsButton("herdval", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
+            if((prettyNum((myOuts[rv$page, net.wrth] - myOuts[rv$page, assets.cash]), 
+                          digits = 0,big.mark=",", scientific=FALSE)) > 0){
+                  p("Value of herd: $", 
+                    span(prettyNum((myOuts[rv$page, assets.cow]), 
+                                   digits = 0, big.mark=",", scientific=FALSE), 
+                         style="color:green"), 
+                    bsButton("herdval", label = "", icon = icon("question"), 
+                             style = "info", class="quest", size = "extra-small"))
             }else{
-              p("Value of herd: $", span(prettyNum((myOuts[rv$page, assets.cow]), digits = 0,big.mark=",", scientific=FALSE), style="color:red"), 
-                bsButton("herdval", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
+              p("Value of herd: $", 
+                span(prettyNum((myOuts[rv$page, assets.cow]), digits = 0,
+                               big.mark=",", scientific=FALSE), style="color:red"), 
+                bsButton("herdval", label = "", icon = icon("question"), 
+                         style = "info", class="quest", size = "extra-small"))
             },
             bsPopover(id = "herdval", title = "Value of herd",
                       content = paste0("This is the estimated value of your breeding cows at current market prices."),
@@ -353,11 +411,18 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
                       trigger = "hover", 
                       options = list(container = "body")),
             
-            if((prettyNum(myOuts[rv$page, net.wrth], digits = 0, big.mark=",", scientific=FALSE))>0){
-              p("Net worth: $", span(prettyNum(myOuts[rv$page, net.wrth], digits = 0, big.mark=",", scientific=FALSE), style="color:green"), 
-                bsButton("infonet", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
-            }else{p("Net worth: $", span(prettyNum(myOuts[rv$page, net.wrth], digits = 0, big.mark=",", scientific=FALSE), style="color:red"), 
-                    bsButton("infonet", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small")
+            if((prettyNum(myOuts[rv$page, net.wrth], 
+                          digits = 0, big.mark=",", scientific=FALSE))>0){
+              p("Net worth: $", 
+                span(prettyNum(myOuts[rv$page, net.wrth], digits = 0, 
+                               big.mark=",", scientific=FALSE), style="color:green"), 
+                bsButton("infonet", label = "", icon = icon("question"), 
+                         style = "info", class="quest", size = "extra-small"))
+            }else{p("Net worth: $", 
+                    span(prettyNum(myOuts[rv$page, net.wrth], digits = 0, 
+                                   big.mark=",", scientific=FALSE), style="color:red"), 
+                    bsButton("infonet", label = "", icon = icon("question"), 
+                             style = "info", class="quest", size = "extra-small")
             )
               
             },
@@ -386,7 +451,9 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     # print(rangeHealthList)
     tagList(
       h3(paste0("Year ", i, " of ", simLength, ": Ranching Simulation")),
-      p("Remember, at the end of the simulation, you'll convert your net worth to a real MTurk bonus. Read the information carefully to make the best decisions."),
+      p("Remember, at the end of the simulation, you'll convert your net worth 
+        to a real MTurk bonus. Read the information carefully to make the best 
+        decisions."),
       get(paste0("reactiveWinter", name))()
     )
   })
