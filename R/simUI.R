@@ -264,8 +264,6 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
           
           width = 225, height = "auto",
           wellPanel(
-            p("mTurk ID"), 
-            p(ID),
             p(h2("Ranch Overview")),
             p(h3("Year ", i, "of ", simLength)),
             p(h4("Cattle Status:")), 
@@ -432,14 +430,14 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   ## Display Update for insurance info
   output[[paste0("insuranceUpdate", name)]] <- renderUI({
     if(!is.null(input[[paste0("year", name, "Summer")]])){
-      if(input[[paste0("year", name, "Summer") == 1]]){
-        if(myOuts[i, herd] == 0){
-          if(orgName == "prac"){
-            indem[[i]]$indemnity <<- 0
-          }else{
-            indem[[i]]$indemnity <<- 0
-          }
-        }
+       if(input[[paste0("year", name, "Summer")]] == 1){
+         if(myOuts[i, herd] == 0){
+           if(orgName == "prac"){
+             indem[[i]]$indemnity <<- 0
+           }else{
+             indem[[i]]$indemnity <<- 0
+           }
+         }
         currentIndem <- prettyNum(indem[[i]]$indemnity, digits = 0, big.mark=",",scientific=FALSE)
         tagList(
           br(),
@@ -1008,6 +1006,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
     oldOuts[currentYear, rev.calf := calculateExpSales(herd = NA, wn.succ = NA, 
                                                        wn.wt = calfDroughtWeight(simRuns$normal.wn.wt, totalForage), 
                                                        calf.sell = calfSale, p.wn = simRuns$p.wn[pastYear])]
+    oldOuts[currentYear, rev.cow := cowSales * simRuns$p.cow]
     oldOuts[currentYear, simStartTime := startTime]
     oldOuts[currentYear, timeElapse := (Sys.time() - yearStartTime)]
     oldOuts[currentYear, mTurkID := ID]
@@ -1016,7 +1015,9 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
                                            oldOuts[pastYear, assets.cash] * simRuns$invst.int,
                                            0)]
     oldOuts[currentYear, household.exp := simRuns$household.exp]
-    oldOuts[currentYear, rev.tot := oldOuts[currentYear, rev.ins] + oldOuts[currentYear, rev.int] + oldOuts[currentYear, rev.calf]]
+    oldOuts[currentYear, rev.tot := oldOuts[currentYear, rev.ins] + 
+              oldOuts[currentYear, rev.int] + oldOuts[currentYear, rev.calf] +
+              oldOuts[currentYear, rev.cow]]
     oldOuts[currentYear, cost.op := currentHerd * simRuns$cow.cost]
     oldOuts[currentYear, cost.ins := indem$producer_prem]
     oldOuts[currentYear, cost.adpt := adaptExpend]
@@ -1028,14 +1029,12 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
               oldOuts[currentYear, cost.adpt] + oldOuts[currentYear, cost.int] + 
               oldOuts[currentYear, household.exp]]
     oldOuts[currentYear, profit := oldOuts[currentYear, rev.tot] - oldOuts[currentYear, cost.tot]]
-    oldOuts[currentYear, taxes := ifelse(oldOuts[currentYear, profit] > 0, oldOuts[currentYear, profit] * (0.124+0.15+0.04), 0)]
-    oldOuts[currentYear, aftax.inc := oldOuts[currentYear, profit] - oldOuts[currentYear, taxes]]
-    oldOuts[currentYear, cap.sales := cowSales * simRuns$p.cow]
-    oldOuts[currentYear, cap.taxes := oldOuts[currentYear, cap.sales] * simRuns$cap.tax.rate]
+    oldOuts[currentYear, taxes := ifelse(oldOuts[currentYear, profit] > -60000, 
+                                         oldOuts[currentYear, profit] * (0.124+0.15+0.04), 
+                                         0)]
+    oldOuts[currentYear, aftax.savings := oldOuts[currentYear, profit] - oldOuts[currentYear, taxes]]
     oldOuts[currentYear, assets.cow := round(newHerd, 0) * simRuns$p.cow]
-    oldOuts[currentYear, assets.cash := oldOuts[pastYear, assets.cash] + oldOuts[currentYear, aftax.inc] +
-              oldOuts[currentYear, cap.sales] - oldOuts[currentYear, cap.purch] -
-              oldOuts[currentYear, cap.taxes]]
+    oldOuts[currentYear, assets.cash := oldOuts[pastYear, assets.cash] + oldOuts[currentYear, aftax.savings]]
     oldOuts[currentYear, net.wrth := oldOuts[currentYear, assets.cash] + oldOuts[currentYear, assets.cow]]
     oldOuts[currentYear, wn.succ := wean]
     oldOuts[currentYear, total.forage := totalForage]
