@@ -431,13 +431,6 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   output[[paste0("insuranceUpdate", name)]] <- renderUI({
     if(!is.null(input[[paste0("year", name, "Summer")]])){
        if(input[[paste0("year", name, "Summer")]] == 1){
-         if(myOuts[i, herd] == 0){
-           if(orgName == "prac"){
-             indem[[i]]$indemnity <<- 0
-           }else{
-             indem[[i]]$indemnity <<- 0
-           }
-         }
         currentIndem <- prettyNum(indem[[i]]$indemnity, digits = 0, big.mark=",",scientific=FALSE)
         tagList(
           br(),
