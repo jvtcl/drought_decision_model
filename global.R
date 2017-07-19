@@ -1,7 +1,5 @@
 #### Source Scripts ####
 source("R/load.R")
-source("R/shinySupportFunctions.R")
-source("R/simUI.R")
 source("R/forageFunctions.R")
 source("R/adaptationFunctions.R")
 source("R/costRevenueFunctions.R")

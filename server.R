@@ -1,4 +1,7 @@
-function(input, output, session) {
+shinyServer(function(input, output, session) {
+  
+  source("R/simUI.R")
+  source("R/shinySupportFunctions.R")
   
   ## Calcualte indemnities for all years of the simulation
   indem <- lapply(startYear:(startYear + simLength - 1), function(x){
@@ -266,17 +269,22 @@ function(input, output, session) {
     
     # Saves data to MySQL
     withProgress(message = "Saving Data", value = 1/3, {
+      print("Saving data")
+      print("Connecting to MySQL server")
+      simSheet <- "cowGameOutputs"
       con <- dbConnect(MySQL(),
                        user = 'cowgame',
                        password = 'cowsrock',
                        host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
                        dbname = 'cowgame')
+      print("Connection successful, saving data")
       incProgress(1/3)
       dbWriteTable(conn = con, 
                    name = 'cowGameOutputs', 
                    value = as.data.frame(myOuts), 
                    overwrite=FALSE, 
                    append = TRUE)
+      print("Data save complete")
 
     })
     values$saveComplete <- TRUE
@@ -319,12 +327,15 @@ function(input, output, session) {
     saveData <- t(saveData)
     # Remove first row of variable names
     withProgress(message = "Saving Data", value = 1/3, {
+      print("Saving data")
+      print("Connecting to MySQL server")
+      pracSheet <- "practiceGameOutputs"
       con <- dbConnect(MySQL(),
                        user = 'cowgame',
                        password = 'cowsrock',
                        host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
                        dbname = 'cowgame')
-
+      print("Connection successful, saving data")
       outputTable <- myOuts[1:6]
       incProgress(1/3)
       dbWriteTable(conn = con, 
@@ -332,7 +343,7 @@ function(input, output, session) {
                    value = as.data.frame(outputTable), 
                    overwrite = FALSE, 
                    append = TRUE)
-      
+      print("Data save complete")
     })
     values$practSaveComplete <- TRUE
     
@@ -356,6 +367,6 @@ function(input, output, session) {
     stopApp()
   })
 
-}
+})
 
 

@@ -89,21 +89,21 @@ tabsetPanel(id = "mainPanels",
   ## Instruction panel
   
   
-  # tabPanel("debug",
-  #          fluidRow(
-  #            textInput("code", "Enter Code to be Run"),
-  #            actionButton("runCode", "Run Code"),
-  #            textInput("insChange", "Enter True or False to use insurance or not"),
-  #            actionButton("applyInsChange", "Change Insurance"),
-  #            actionButton("reset_button", "Reset Page"),
-  #            textInput("fileName", "Enter File Name"),
-  #            actionButton("saveState", "Save Current Inputs and Outputs"),
-  #            br(),
-  #            textInput("name", "Enter your name or alias"),
-  #            actionButton("saveStateWeb", "Save Web Inputs and Outputs"),
-  #            actionButton("saveStateWeb", "Save Web Inputs and Outputs")
-  #            # actionButton("saveInputs", "Save all Input")
-  #          )),
+  tabPanel("debug",
+           fluidRow(
+             textInput("code", "Enter Code to be Run"),
+             actionButton("runCode", "Run Code"),
+             textInput("insChange", "Enter True or False to use insurance or not"),
+             actionButton("applyInsChange", "Change Insurance"),
+             actionButton("reset_button", "Reset Page"),
+             textInput("fileName", "Enter File Name"),
+             actionButton("saveState", "Save Current Inputs and Outputs"),
+             br(),
+             textInput("name", "Enter your name or alias"),
+             actionButton("saveStateWeb", "Save Web Inputs and Outputs"),
+             actionButton("saveStateWeb", "Save Web Inputs and Outputs")
+             # actionButton("saveInputs", "Save all Input")
+           )),
   
  ## Instruction panel
  tabPanel("Welcome",
@@ -230,35 +230,11 @@ tabsetPanel(id = "mainPanels",
                                     border-color: rgb(255,255,255);
                                     background-color: rgb(255, 255, 255);"
                       ))),
-          
-          
-          
           fluidPage(
-
-            
             uiOutput("pageOut"),
-                    uiOutput("infoPane")
-                    
+                    uiOutput("infoPaneMain")
           )
-          
-          
  )
- 
-  
-)
-
-
 )
 )
-
-
-
-
-
-
-
-
-
-
-
-
+)
