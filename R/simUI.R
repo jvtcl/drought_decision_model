@@ -954,6 +954,9 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, myOu
   # Disable continue button and adaptation slider after clicking
   observeEvent(input[[paste0("year", name, "Summer")]], {
     shinyjs::disable(paste0("year", name, "Summer"))
+  })
+  
+  observeEvent(input[[paste0("year", name, "Summer")]], {
     shinyjs::disable(paste0("d", name, "adaptExpend"))
   })
   
