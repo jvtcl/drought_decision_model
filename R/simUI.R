@@ -76,21 +76,21 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
     
   }))
   
-  # Calculates zone weights for the current year, this shouldn't change 
+  # Calculates monthly precip weights for the current year, this shouldn't change 
   #   throughout the year
-  assign(paste0("currentZones", name), reactive({
-    zones <- station.gauge$zonewt
+  assign(paste0("currentPrecipWeights", name), reactive({
+    monthlyPrecipWeights <- station.gauge$monthlyPrecipWeights
     
-    if(i == 1){  # Year 1 calc without prior Gt and zones
-      zones <- zones * (1 - (0)/simRuns$forage.constant)
+    if(i == 1){  # Year 1 calc without prior Gt and monthlyPrecipWeights
+      monthlyPrecipWeights <- monthlyPrecipWeights * (1 - (0)/simRuns$forage.constant)
       
       
     }else{  # Code for all subsequent years
-      zones <- myOuts[i, zone.change] * zones * 
+      monthlyPrecipWeights <- myOuts[i, precipWeight.change] * monthlyPrecipWeights * 
         (1 - (myOuts[i, Gt])/simRuns$forage.constant)
     }
     
-    return(zones)
+    return(monthlyPrecipWeights)
   }))
   
   # Reactive to track forage for each year
@@ -99,11 +99,11 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
     ## Establish current state
     myYear <- startYear + i - 1
     herd <- myOuts[i, herd]
-    zones <- get(paste0("currentZones", name))()
+    monthlyPrecipWeights <- get(paste0("currentPrecipWeights", name))()
     
     # Calculate available forage produced on the land using Nov-Nov as a year
     # forageProduction = 1 is full feed for a cow-calf pair
-    forage.production <- whatIfForage(station.gauge, zones, myYear, herd, 
+    forage.production <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, 
                                       carryingCapacity, 10, 11, "normal")
 
     # Calculate adaptation intensity based on forage production
@@ -258,16 +258,16 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
       
       br(),
       h4("Range Condition"),
-      if(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, 
-                round(sum(get(paste0("currentZones", name))()) * 100, 0))<100){
+      if(ifelse(round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0) > 100, 100, 
+                round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0))<100){
         p("Your range condition is currently at ", 
-          span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, 
-                      round(sum(get(paste0("currentZones", name))()) * 100, 0)),
+          span(ifelse(round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0) > 100, 100, 
+                      round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0)),
                style="font-weight:bold;font-size:large;color:red"), "%")
       }else{
         p("Your range condition is currently at ", 
-          span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, 
-                      round(sum(get(paste0("currentZones", name))()) * 100, 0)),
+          span(ifelse(round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0) > 100, 100, 
+                      round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0)),
                style="font-weight:bold;font-size:large;color:green"), "%")
       },
       plotOutput(paste0("RangeHealthPlot", name)),
@@ -350,13 +350,13 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
             
             br(),
             p(h4("Ranch Status:")),
-            if(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, 
-                      round(sum(get(paste0("currentZones", name))()) * 100, 0))<100){
+            if(ifelse(round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0) > 100, 100, 
+                      round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0))<100){
               
-              p("Range health (%):", span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)),style="color:red"), 
+              p("Range health (%):", span(ifelse(round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0)),style="color:red"), 
                 bsButton("infohealth", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
             }else{
-              p("Range health (%):", span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)),style="color:green"),
+              p("Range health (%):", span(ifelse(round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0)),style="color:green"),
                 bsButton("infohealth", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
               
             },
@@ -626,7 +626,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
        br(),
 
     
-    # p("Range health(%):", span(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)),style="color:green"),
+    # p("Range health(%):", span(ifelse(round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0)),style="color:green"),
     #   bsButton("infohealth", label = "", icon = icon("question"), style = "info", class="quest", size = "extra-small"))
     
     
@@ -912,7 +912,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
     PlotYear[, Year := startYear:(startYear + nrow(PlotYear) - 1)]
     PlotYear <- melt(PlotYear, id.vars = "Year")
     PlotYear[,myRangeHealthList := myOuts[1:simLength, rangeHealth]]
-    PlotYear[rv$page, myRangeHealthList := ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0))]
+    PlotYear[rv$page, myRangeHealthList := ifelse(round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0))]
     # PlotYear[is.na(myRangeHealthList), myRangeHealthList := 0]
     
     PlotYear$YearNumbers <- paste("Yr", seq(1,simLength))
@@ -1013,7 +1013,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
     myOuts <<- updateOuts(wean = AdjWeanSuccess(get(paste0("totalForage", name))(), myOuts[i , total.forage], simRuns$normal.wn.succ), 
                           totalForage = get(paste0("totalForage", name))(), calfSale = input[[paste0("calves", name, "Sale")]],
                           indem = indem[[i]], adaptExpend = get(paste0("hay", name))(), cowSales = input[[paste0("cow", name, "Sale")]], 
-                          newHerd = get(paste0("herdSize", name))(), zones = get(paste0("currentZones", name))(), 
+                          newHerd = get(paste0("herdSize", name))(), monthlyPrecipWeights = get(paste0("currentPrecipWeights", name))(), 
                           currentYear = i, ID = ID, time = startTime, oldOuts = myOuts)
   })
   
@@ -1037,7 +1037,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
   #   return(rangeHealthList)
   # }
   
-  updateOuts <- function(wean, totalForage, calfSale, indem, adaptExpend, cowSales, newHerd, zones, adaptInten, currentYear, ID, time, oldOuts){
+  updateOuts <- function(wean, totalForage, calfSale, indem, adaptExpend, cowSales, newHerd, monthlyPrecipWeights, adaptInten, currentYear, ID, time, oldOuts){
     "
     Function: updateOuts
     Description: Function to update myOuts after a year of the simulation has been completed
@@ -1050,7 +1050,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
     adaptExpend = amount spent on adaptation
     cowSales = number of cows being sold
     newHerd = size of next year's herd based on cowsales and calf sales from 2ya
-    zones = zone information based on precip/adaptation/over grazing from previous year
+    monthlyPrecipWeights = preip weighting information based on precip/adaptation/over grazing from previous year
     adaptInten = intensity of adaptation
     currentYear = the current year
     ID = mTurk user entered ID
@@ -1064,7 +1064,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
     currentYear <- currentYear + 1
     oldOuts[currentYear, yr := startYear + pastYear - 1]
     adaptInten <- 
-      calculateAdaptationIntensity(whatIfForage(station.gauge, zones, oldOuts[currentYear, yr], currentHerd, carryingCapacity, 10, 11, "normal"))
+      calculateAdaptationIntensity(whatIfForage(station.gauge, monthlyPrecipWeights, oldOuts[currentYear, yr], currentHerd, carryingCapacity, 10, 11, "normal"))
     
     oldOuts[currentYear, rev.calf := calculateExpSales(herd = NA, wn.succ = NA, 
                                                        wn.wt = calfDroughtWeight(simRuns$normal.wn.wt, totalForage), 
@@ -1104,10 +1104,10 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
     oldOuts[currentYear, herd := round(newHerd, 0)]
     oldOuts[currentYear, calves.sold := calfSale]
     oldOuts[currentYear, cows.culled := cowSales]
-    oldOuts[currentYear, zone.change := sum(zones)]
-    oldOuts[pastYear, rangeHealth := ifelse((oldOuts[currentYear, zone.change] * 100) > 100, 100, round(oldOuts[currentYear, zone.change] * 100, 0))]
+    oldOuts[currentYear, precipWeight.change := sum(monthlyPrecipWeights)]
+    oldOuts[pastYear, rangeHealth := ifelse((oldOuts[currentYear, precipWeight.change] * 100) > 100, 100, round(oldOuts[currentYear, precipWeight.change] * 100, 0))]
     if(debugMode){
-      print(paste("forage production", whatIfForage(station.gauge, zones, oldOuts[currentYear, yr], currentHerd, carryingCapacity, 10, 11, "normal")))
+      print(paste("forage production", whatIfForage(station.gauge, monthlyPrecipWeights, oldOuts[currentYear, yr], currentHerd, carryingCapacity, 10, 11, "normal")))
       print(paste("adapt expend", adaptExpend))
       print(paste("adapt inten", adaptInten))
       print(paste("adapt needed", getAdaptCost(adpt_choice = "feed",
@@ -1119,7 +1119,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
       print(paste("Gt", oldOuts[currentYear, Gt]))
     }
     oldOuts[currentYear, Gt := 1 - (totalForage)]
-    oldOuts[currentYear, forage.potential := sum(zones)]
+    oldOuts[currentYear, forage.potential := sum(monthlyPrecipWeights)]
     return(oldOuts)
   }
 }
