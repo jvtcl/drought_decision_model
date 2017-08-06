@@ -836,15 +836,15 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
   ## Table of rain for each July
   output[[paste0("julyRain", name)]] <- renderTable({
     currentYear <- (startYear + i - 1)
-    yprecip <- station.gauge$stgg[Year %in% (currentYear - 1):currentYear, ]  # monthly precip amounts for start year
+    yprecip <- station.gauge$precip[Year %in% (currentYear - 1):currentYear, ]  # monthly precip amounts for start year
     yprecip <- cbind((yprecip[Year == currentYear - 1, c("NOV", "DEC")]), 
                      (yprecip[Year == currentYear, -c("NOV", "DEC", "Year")]))
     yprecip[, 9:12 := 0]
-    ave <- station.gauge$avg
+    ave <- station.gauge$avgPrecip
     yearAvg <- rbindlist(list(yprecip, ave), use.names = T)
     julyRain <- round((yearAvg[1,]/yearAvg[2,]) * 100, 2)
     julyRain[, 9:12 := "?"]
-    # julyRain <- station.gauge$stgg[Year == (startYear + i - 1),-1]/station.gauge$avg * 100
+    # julyRain <- station.gauge$precip[Year == (startYear + i - 1),-1]/station.gauge$avgPrecip * 100
     # julyRain[, 7:12 := "?"]
   })
   
@@ -935,11 +935,11 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
   ## Bar graph to display rainfall
   output[[paste0("rainGraph", name)]] <- renderPlot({
     currentYear <- (startYear + i - 1)
-    yprecip <- station.gauge$stgg[Year %in% (currentYear - 1):currentYear, ]  # monthly precip amounts for start year
+    yprecip <- station.gauge$precip[Year %in% (currentYear - 1):currentYear, ]  # monthly precip amounts for start year
     yprecip <- cbind((yprecip[Year == currentYear - 1, c("NOV", "DEC")]), 
                      (yprecip[Year == currentYear, -c("NOV", "DEC", "Year")]))
     yprecip[, 9:12 := 0]
-    ave <- station.gauge$avg
+    ave <- station.gauge$avgPrecip
     yearAvg <- rbindlist(list(yprecip, ave), use.names = T)
     yearAvg[, "id" := c("Actual Rain", "Average Rain")]
     yearAvg <- melt(yearAvg, id.vars = "id")
@@ -959,11 +959,11 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
   ## Bar graph to display rainfall with July and August added
   output[[paste0("rainGraphSep", name)]] <- renderPlot({
     currentYear <- (startYear + i - 1)
-    yprecip <- station.gauge$stgg[Year %in% (currentYear - 1):currentYear, ]  # monthly precip amounts for start year
+    yprecip <- station.gauge$precip[Year %in% (currentYear - 1):currentYear, ]  # monthly precip amounts for start year
     yprecip <- cbind((yprecip[Year == currentYear - 1, c("NOV", "DEC")]), 
                      (yprecip[Year == currentYear, -c("NOV", "DEC", "Year")]))
     #yprecip[, 11:12 := 0]
-    ave <- station.gauge$avg
+    ave <- station.gauge$avgPrecip
     yearAvg <- rbindlist(list(yprecip, ave), use.names = T)
     yearAvg[, "id" := c("Actual Rain", "Average Rain")]
     yearAvg <- melt(yearAvg, id.vars = "id")
@@ -972,7 +972,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
     #Setting output to only highlight July and August
     #yprecip1 = yprecip[, (1:12)[-seq(9,10)] :=0]
     yprecip1 = yprecip[, 1:8 :=0]
-    ave1 <- station.gauge$avg
+    ave1 <- station.gauge$avgPrecip
     yearAvg1 <- rbindlist(list(yprecip1, ave1), use.names = T)
     yearAvg1[, "id" := c("Actual Rain", "Average Rain")]
     yearAvg1 <- melt(yearAvg1, id.vars = "id")

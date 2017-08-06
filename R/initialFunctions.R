@@ -195,8 +195,8 @@ getStationGauge <- function(target.loc="CPER"){
   grid cell.
   
   Upon completion of the function `getStationGauge`, a new sub-environment
-  `station.gauge` is generated, which contains `monthlyPrecipWeights`, `stzone`, `stgg`,
-  and `tgrd` based on the target location.
+  `station.gauge` is generated, which contains `monthlyPrecipWeights`, `stzone`, `precip`,
+  and `gridCell` based on the target location.
   
   "
   ## This isn't necessary because were simply going to be writing over the list named
@@ -225,7 +225,7 @@ getStationGauge <- function(target.loc="CPER"){
     load("data/noaaPrecip.RData")
     
     ## Target grid cell
-    tgrd = 25002  # target grid cell - CPER default
+    gridCell = 25002  # target grid cell - CPER default
     
   }else{ #Custom location specified (COOP site and MLRA forage potential weights)
     
@@ -249,15 +249,15 @@ getStationGauge <- function(target.loc="CPER"){
     stgg[nrow(stgg), ][, -1] <- colMeans(stgg[-nrow(stgg), ][, -1],na.rm = TRUE)
     
     ## Target grid cell
-    tgrd <- target.coop$grid  # target grid cell - custom site
+    gridCell <- target.coop$grid  # target grid cell - custom site
     
   }
   
   # Write vars to new env
   ## Previously used to create a spatial point on the gridcell "tgrd_pt" = rastPt[rastPt@data$layer == tgrd, ]
   station.gauge <- vector("list", 5)
-  station.gauge <- list("monthlyPrecipWeights" = monthlyPrecipWeights[stzone,], "stgg" = data.table(stgg),
-                        "tgrd" = tgrd, avg = data.table(stgg[nrow(stgg), ][, -1]))
+  station.gauge <- list("monthlyPrecipWeights" = monthlyPrecipWeights[stzone,], "precip" = data.table(stgg),
+                        "gridCell" = gridCell, avgPrecip = data.table(stgg[nrow(stgg), ][, -1]))
   return(station.gauge)
 }
 
