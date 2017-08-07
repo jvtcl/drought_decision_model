@@ -17,7 +17,17 @@
 \maketitle
 %\section{}
 %\subsection{}
- 
+
+\section{Model}
+
+The goal of the player is to maximize the following objective function:
+
+\begin{equation}
+\sum_{t=1}^T \pi_t(1+r)^{-t}
+\end{equation}
+
+subject to the following constraints:
+
 \section{Scripts}
 
 \subsection{global.R}
@@ -43,8 +53,7 @@ Loads necessary packages
     \item Called in \verb!simUI.R!
     \end{itemize}
 \item \verb!getCowSell! function: Creates a UI for the user to select how many cows and calves to sell. Called in \verb!simUI.R!.
-\item \verb!shinyInsurance! function: Calculates premium and indemnification for a specific year and
-  grid cell. Currently returns are summed but this could be done on a index interval basis instead.
+\item \verb!shinyInsurance! function: Calculates premium and indemnification for a specific year and grid cell. Currently, returns are summed but this could be done on a index interval basis instead.
 \end{enumerate}
 
 \subsection{forageFunctions.R}
@@ -100,58 +109,123 @@ Loads necessary packages
 
 
 \section{Function Details}
+Key functions in the model are listed and described in alphabetical order.
+
 
 \subsection{AdjWeanSuccess}
-
-\subsection{Current State}
 \begin{itemize}
 \item Function: \verb!AdjWeanSuccess!
 	\begin{itemize}
-	\item Description: Adjusts weaning success downward for the year of the drought and the following year based on a modified logistic equation. 
-	\item Inputs: \verb!stgg!, \verb!zonewt!, \verb!stzone!, \verb!styear!, \verb!noadpt!, \verb!normal.wn.succ!, \verb!t!
-	\item Output: \verb!wn.succ! (tx1 vector of weaning success in percentage of cows that will have calves that survive to be fully weaned)
+	\item Description: Adjusts weaning success downward for the year of the drought and the following year. If forage production falls below 1 in year $t=1$, then weaning percentage falls slightly in year $t=1$ and more drastically in year $t=2$. If forage production falls below 1 in a year $t=1$ where weaning percentage was already decremented because of previous forage production deficits or insufficient culling, then weaning percentage falls further in years $t=1,2$ than it would have if the starting point was at the maximum weaning percentage.
+	\item Inputs: \verb!totalForage!, \verb!totalForage1ya!, \verb!normal.wn.succ!
+	\item Output: \verb!wn.succ!
 	\item Assumptions: This equation is based on what I consider to be ``reasonable" estimates of weaning success based on forage potential. These fall roughly in line with body condition scores from the \textit{Nutrient Requirements of Beef Cattle}, but are only ballpark estimates.
 	\end{itemize}
 \end{itemize}
 
-If drought adaptation is not undertaken and $\alpha < 1$:
-\begin{align}
-wn_1 &= \bar{wn} * \frac{1}{1 + e^{2(-1 + \alpha_1)}} \\
-wn_2 &= \bar{wn} * \frac{1}{1 + e^{(-1 + \alpha_1)}} \\
-wn_3 &= \bar{wn} \\
-wn_4 &= \bar{wn} \\
-wn_5 &= \bar{wn} \\
-\end{align}
+The weaning percentage maximum is 88\%, represented by $\tilde{\omega}$. Weaning percentage in year $t$, $\omega_t$, is given by:\\
 
-Otherwise: 
 \begin{equation}
-wn_t = \bar{wn}
+\omega_t =
+\begin{cases}
+\tilde{\omega}  &\text{if } F_{t}, F_{t-1} \ge 1  \\
+\tilde{\omega} * F_{t}^{(1/4)} &\text{if } F_{t} < 1 \land F_{t-1} \ge 1 \\
+\tilde{\omega} * F_{t - 1} &\text{if } F_{t} \ge 1 \land F_{t-1} < 1 \\
+\tilde{\omega} * F_{t}^{(1/4)} * F_{t-1} &\text{if } F_{t}, F_{t-1} < 1 \\
+\end{cases}
 \end{equation}
 
-\subsubsection{Desired Future State}
+\vspace{.25in}
+\textbf{Code:}
 
-The weaning percentage default and maximum is 88\%. \\
+\verb!  wn.succ <- NULL!
 
-If forage production falls below 1 in year $t=1$, then weaning percentage falls slightly in year $t=1$ and more drastically in year $t=2$. If forage production falls below 1 in a year $t=1$ where weaning percentage was already decremented because of previous forage production deficits or insufficient culling, then weaning percentage falls further in years $t=1,2$ than it would have if the starting point was at the maximum weaning percentage. \\
+\verb!  if(totalForage < 1 & totalForage1ya >= 1){!
 
-Where \verb!wn.succ! is the weaning success going into a given year (say, t = 5) and \verb!forage.production! $< 1$:
-for year t=5, the final weaning success for the full year is given by: 
+\verb!    wn.succ <- normal.wn.succ * totalForage^.25!
 
-\verb!wn.succ <- wn.succ * (1 / (1 + exp(-(1 + forage.production_t5)*2)))! \\
+\verb!  }else if(totalForage >= 1 & totalForage1ya < 1){!
 
-For the year t=5, if the \verb!forage.production_t6! $\ge 1$:
+\verb!    wn.succ <- normal.wn.succ * totalForage1ya!
 
-\verb!wn.succ <- wn.succ * (1 / (1 + exp(-(1 + forage.production_t5))))! \\
+\verb!  }else if(totalForage < 1 & totalForage1ya < 1){!
 
-If forage production is below 1 for more than year in a row, then the wn.succ is decremented twice. Once with the first year decrement, and once with the second year decrement.
+\verb!    wn.succ <- normal.wn.succ * totalForage1ya * totalForage^.25!
 
-year 1 and 2 have low forage, but recovers to 1 or more in year 3:
-\verb!wn.succ_2 <-  wn.succ * (1 / (1 + exp(-(1 + forage.production_1))))  * (1 / (1 + exp(-(1 + forage.production_2)*2)))! 
-\verb!wn.succ_3 <-  wn.succ * (1 / (1 + exp(-(1 + forage.production_2))))! \\
+\verb!  }else if(totalForage >= 1 & totalForage1ya >= 1){!
+
+\verb!    wn.succ <- normal.wn.succ!
+
+\verb!  }!
 
 
 
 
+
+\subsection{getStationGauge}
+The model is currently set for a default to the Central Plans Experimental Range (CPER), but alternative locations for COOP sites in Colorado may also be used.
+
+\begin{itemize}
+\item Function: \verb!getStationGauge!
+	\begin{itemize}
+	\item Description: Returns precipitation record and locational attributes for the target
+  location. Default is Central Plains Experimental Range (CPER).
+  \item Inputs: \verb!target.loc! (target location. default set to \verb!CPER!)
+  \item Outputs: a list called \verb!station.gauge! that contains \verb!monthlyPrecipWeights! (the weight given to precipitation in each month in terms of how much it contributes to annual forage), \verb!precip! (station or gauge precipitation data from 1948 to 2015), \verb!gridCell! (Target Grid Cell for reading in PRF index values at a given point in time).
+	\end{itemize}
+\end{itemize}
+
+\textbf{If CPER (default):}
+\begin{enumerate}
+\item Monthly precipitation weights are based on the plant growth curves for rangeland with loamy soils in major land resource area 67B (see Figure \ref{MLRA}, an area that encompasses a large portion of Eastern Colorado including the CPER site (Site ID: R067BY002CO). We use the plant growth curve for Western Wheatgrass, Blue Grama, Green Needlegrass, Fourwing Saltbush Plant Community (Growth curve number CO6701), which is well suited for grazing and is maintained with properly stocked prescribed grazing. 
+
+\begin{figure}
+\begin{center}
+\label{MLRA}
+\includegraphics[scale=.5]{CO_MLRAs}
+\end{center}
+\caption{Major Land Resource Areas for Colorado}
+\end{figure}
+
+These monthly weights are the percentage of plant growth that is expected in each month during a normal year. Under normal conditions, total annual production averages 1300 pounds per acre. These weights add up to 1. 
+
+\begin{tabular}{|cccccccccccc|}
+\hline
+Jan & Feb & Mar & Apr &May & Jun & Jul & Aug &Sep & Oct& Nov& Dec \\
+\hline
+0  & 0 &0.02& 0.08 &0.2 &0.28 &0.15 &0.12 &0.1 &0.05 &  0 &  0 \\
+\hline
+\end{tabular}
+
+\item Station Gauge, historical precipitation totals dating back to 1948, which are also read in from the Excel model. Precip totals are collected at CPER itself and do not rely on precip data from COOP sites.
+\item The target grid cell 25002 is assigned to the PRF grid cell (assuming this is the correct grid cell)
+\end{enumerate}
+
+
+\section{Default Model Values}
+
+\begin{itemize}
+\item Starting herd size: 600 cows
+\item Ranch size: 3000 acres
+\item Carrying capacity: 5 acres/cow
+\item Maximum calf weaning weight: 600 lbs
+\item Default calf sale rate: 75\%
+\item Maximum weaning percentage: 88\%
+\item Cow price: \$850/cow
+\item Calf price at weaning: \$1.40/pound
+\item Cow mortality rate: 4\%
+\item Practice round years: 1951-1955
+\item Game round years: 1999-2008
+\item Household expenses: \$60,000
+\item Starting cash assets: \$90,000
+\item Operating costs: \$500/cow
+\item Insurance Coverage Level: 90\%
+\item Interest rate: 5\%
+\end{itemize}
+
+
+
+  
 
 
  \end{document}

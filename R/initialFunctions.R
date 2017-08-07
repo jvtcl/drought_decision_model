@@ -124,7 +124,7 @@ getSimVars <- function(station.gauge,
   # upon forage potential
   attach(station.gauge) # reference the `station gauge` environment's vars
   if(autoSelect.insurance == TRUE){
-    assign("insp", insAlloc(fpwt = zonewt, niv = 2), envir = simvars) # automatic selection
+    assign("insp", insAlloc(fpwt = monthlyPrecipWeights, niv = 2), envir = simvars) # automatic selection
   }else{
     assign("insp", rbind(c(5, 0.5), c(7, 0.5)), envir = simvars) # insurance purchase
   }
@@ -155,7 +155,7 @@ getStationGauge <- function(target.loc="CPER"){
   
   If CPER (default):
   
-  Zone Weights `zonewt` are read from the Excel model which is based on [xx]
+  Monthly precip weights Weights `monthlyPrecipWeights` are read from the Excel model which is based on [xx]
   drought calculator state forage potential weights that we cannot reproduce.
   We are missing spatial reference information necessary to assign each target
   location to a state zone.
@@ -173,7 +173,7 @@ getStationGauge <- function(target.loc="CPER"){
   
   If COOP site (user-specified):
   
-  Zone Weights `zonewt` are based upon the Major Land Resource Area in which
+  Precip weights Weights `monthlyPrecipWeights` are based upon the Major Land Resource Area in which
   the COOP site resides. The MLRA forage potential is an average of plant growth
   curves calculated for a series of ecological site surveys (ESS) performed for
   that MLRA (using functions `COOPinMRLA` `getMLRAWeights`). Our decision to
@@ -195,8 +195,8 @@ getStationGauge <- function(target.loc="CPER"){
   grid cell.
   
   Upon completion of the function `getStationGauge`, a new sub-environment
-  `station.gauge` is generated, which contains `zonewt`, `stzone`, `stgg`,
-  and `tgrd` based on the target location.
+  `station.gauge` is generated, which contains `monthlyPrecipWeights`, `stzone`, `precip`,
+  and `gridCell` based on the target location.
   
   "
   ## This isn't necessary because were simply going to be writing over the list named
@@ -208,12 +208,12 @@ getStationGauge <- function(target.loc="CPER"){
   
   if(target.loc=="CPER"){ # Use COOP sites or CPER: Default to CPER
     
-    ## Zone Weights
+    ## Precip weights Weights
     stzone <- 1 # state forage zone
     
-    zonewt <- matrix(c(0.0, 0.0, 0.02, 0.08,0.20,0.28,0.15,0.12,0.10,0.05,0.0,0.0), 
+    monthlyPrecipWeights <- matrix(c(0.0, 0.0, 0.02, 0.08,0.20,0.28,0.15,0.12,0.10,0.05,0.0,0.0), 
                      nrow = 1, ncol = 12)
-    colnames(zonewt) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", 
+    colnames(monthlyPrecipWeights) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", 
                           "Aug", "Sep", "Oct", "Nov", "Dec")
     
     ## Station precip gauge
@@ -225,7 +225,7 @@ getStationGauge <- function(target.loc="CPER"){
     load("data/noaaPrecip.RData")
     
     ## Target grid cell
-    tgrd = 25002  # target grid cell - CPER default
+    gridCell = 25002  # target grid cell - CPER default
     
   }else{ #Custom location specified (COOP site and MLRA forage potential weights)
     
@@ -236,11 +236,11 @@ getStationGauge <- function(target.loc="CPER"){
     mlra <- readOGR("data", "mlra_v42") # load MLRA zone data
     target.coop <- coops[[which(names(coops) == target.loc)]]
     
-    ## Zone weights
+    ## Precip weights 
     mlra.idx <- COOP_in_MRLA(target.coop) # MLRA index
-    zonewt <- getMRLAWeights(wrc.state) # zone weights
-    stzone <- which(zonewt[, 1] == mlra.idx) # not a great workaround...should fix 'getForagePotential' function instead
-    zonewt <- zonewt[, -1] # not a great workaround...should fix 'getForagePotential' function instead
+    monthlyPrecipWeights <- getMRLAWeights(wrc.state) # Precip weights weights
+    stzone <- which(monthlyPrecipWeights[, 1] == mlra.idx) # not a great workaround...should fix 'getForagePotential' function instead
+    monthlyPrecipWeights <- monthlyPrecipWeights[, -1] # not a great workaround...should fix 'getForagePotential' function instead
     
     ## Station precip gauge
     stgg <- target.coop$precip
@@ -249,15 +249,15 @@ getStationGauge <- function(target.loc="CPER"){
     stgg[nrow(stgg), ][, -1] <- colMeans(stgg[-nrow(stgg), ][, -1],na.rm = TRUE)
     
     ## Target grid cell
-    tgrd <- target.coop$grid  # target grid cell - custom site
+    gridCell <- target.coop$grid  # target grid cell - custom site
     
   }
   
   # Write vars to new env
   ## Previously used to create a spatial point on the gridcell "tgrd_pt" = rastPt[rastPt@data$layer == tgrd, ]
   station.gauge <- vector("list", 5)
-  station.gauge <- list("zonewt" = zonewt[stzone,], "stgg" = data.table(stgg),
-                        "tgrd" = tgrd, avg = data.table(stgg[nrow(stgg), ][, -1]))
+  station.gauge <- list("monthlyPrecipWeights" = monthlyPrecipWeights[stzone,], "precip" = data.table(stgg),
+                        "gridCell" = gridCell, avgPrecip = data.table(stgg[nrow(stgg), ][, -1]))
   return(station.gauge)
 }
 
@@ -280,7 +280,7 @@ createResultsFrame <- function(pars = NULL){
                    "cost.int", "cost.tot", "profit", "taxes", "aftax.savings", 
                    "assets.cow", 
                    "assets.cash", "net.wrth", "wn.succ", "forage.production", 
-                   "herd", "calves.sold", "cows.culled", "zone.change", "Gt",
+                   "herd", "calves.sold", "cows.culled", "precipWeight.change", "Gt",
                    "forage.potential", "rangeHealth")
   ## fills in rows using initial variables from pars
   if(!is.null(pars)){
@@ -297,7 +297,7 @@ createResultsFrame <- function(pars = NULL){
     sim_results[1, wn.succ := pars$normal.wn.succ]
     sim_results[1, calves.sold := herd * wn.succ * pars$calf.sell]
     sim_results[1, cows.culled := herd * pars$cull.num]
-    sim_results[1, zone.change := 1]
+    sim_results[1, precipWeight.change := 1]
     sim_results[1, Gt := 0]
     sim_results[1, forage.potential := 1]
     sim_results[1, total.forage := 1]

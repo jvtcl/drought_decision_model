@@ -21,7 +21,7 @@ prac <- dbReadTable(conn = con, "mTurkRun1Practice")
 sim <- dbReadTable(conn = con, "mTurkRun1Sim")
 
 # Taking out unnecessary columns
-sim %>% select(-adapt_choice, -household.exp, -zone.change, -cap.purch) -> sim
+sim %>% select(-adapt_choice, -household.exp, -precipWeight.change, -cap.purch) -> sim
 
 # Creating dummy variable for insurance treatment
 sim$ins <- ifelse(sim$cost.ins > 0, 1, 0)

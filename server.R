@@ -116,7 +116,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$prevBtnprac,{ 
     navPagePrac(-1)
-    # rangeHealthList <<- appendRangeHealth(ifelse(round(sum(get(paste0("currentZones", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)), rangeHealthList, rv$page)
+    # rangeHealthList <<- appendRangeHealth(ifelse(round(sum(get(paste0("currentPrecipWeights", name))()) * 100, 0) > 100, 100, round(sum(get(paste0("currentZones", name))()) * 100, 0)), rangeHealthList, rv$page)
     })
   observeEvent(input$nextBtnprac, navPagePrac(1))
   navPagePrac <- function(direction) {

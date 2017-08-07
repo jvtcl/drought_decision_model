@@ -17,22 +17,22 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
   ## Establish current state variables 
   myYear <- startYear + currentYear - 1
   herd <- myOuts[currentYear, herd]
-  zones <- station.gauge$zonewt
+  monthlyPrecipWeights <- station.gauge$monthlyPrecipWeights
   
   myOuts[currentYear, mTurkID := ID]
   ## Calcualte available forage for normal, high, and low precip over remaining months
   forargeList <- vector("numeric", 3)
   if(currentYear == 1){
-    zones <- zones * (1 - (0)/simRuns$forage.constant)
+    monthlyPrecipWeights <- monthlyPrecipWeights * (1 - (0)/simRuns$forage.constant)
   }else{
-    zones <- myOuts[currentYear - 1, zone.change] * zones * 
+    monthlyPrecipWeights <- myOuts[currentYear - 1, precipWeight.change] * monthlyPrecipWeights * 
       (1 - (myOuts[currentYear - 1, Gt])/simRuns$forage.constant)
   }
 
   forageList <- vector("numeric", 3)
-  forageList[1] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "normal")
-  forageList[2] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "high")
-  forageList[3] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "low")
+  forageList[1] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "normal")
+  forageList[2] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "high")
+  forageList[3] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "low")
   
   ## Calculate cost of Adaptaiton
   adaptInten <- sapply(forageList, calculateAdaptationIntensity)
@@ -70,7 +70,7 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
   SubsetNOAAyear[,c("AVG","index","grid","realValue","Year")] <- NULL
 
   #Creating FOrage Potential dataframe
-  ForageMonthly <- data.frame(station.gauge$zonewt)
+  ForageMonthly <- data.frame(station.gauge$monthlyPrecipWeights)
   ForageMonthly <- setNames(cbind(rownames(ForageMonthly), ForageMonthly, row.names = NULL), 
            c("Month", "FPvalue"))
 
@@ -358,21 +358,21 @@ rangeHealth <- function(currentYear, myOuts){
   
   myYear <- startYear + currentYear - 1
   herd <- myOuts[currentYear, herd]
-  zones <- station.gauge$zonewt
+  monthlyPrecipWeights <- station.gauge$monthlyPrecipWeights
   
   ## Calculate available forage for normal, high, and low precip over remaining months
   forargeList <- vector("numeric", 3)
   if(currentYear == 1){
-    zones <- zones * (1 - (0)/simRuns$forage.constant)
+    monthlyPrecipWeights <- monthlyPrecipWeights * (1 - (0)/simRuns$forage.constant)
   }else{
-    zones <- myOuts[currentYear - 1, zone.change] * zones * 
+    monthlyPrecipWeights <- myOuts[currentYear - 1, precipWeight.change] * monthlyPrecipWeights * 
       (1 - (myOuts[currentYear - 1, Gt])/simRuns$forage.constant)
   }
   
   forageList <- vector("numeric", 3)
-  forageList[1] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "normal")
-  forageList[2] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "high")
-  forageList[3] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "low")
+  forageList[1] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "normal")
+  forageList[2] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "high")
+  forageList[3] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "low")
   
   ## Calculate cost of Adaptaiton
   adaptInten <- sapply(forageList, calculateAdaptationIntensity)

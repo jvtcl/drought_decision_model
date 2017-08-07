@@ -35,7 +35,7 @@ color: white !important;
 # Default location is CPER site
 station.gauge <- getStationGauge()
 
-monthlyNOAA_long <- station.gauge$stgg
+monthlyNOAA_long <- station.gauge$precip
 
 monthlyNOAA_long <- monthlyNOAA_long[!Year %in% c("2016"),]
 
