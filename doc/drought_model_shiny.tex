@@ -20,6 +20,9 @@
 %\subsection{}
 
 \section{Model}
+In this model, This cow-calf production model is 
+
+
 
 Year is indexed with $t$ and month is indexed with $i$. The goal of the player is to maximize the following objective function:
 
@@ -89,6 +92,7 @@ At a sustainable equilibrium, $G_t = 0$.
 
 \subsection{Description of variables:}
 
+
 \subsubsection{Profit}
 Abstracting away from changes in herd assets, we consider the revenues to be cash flows in a given year and costs to be cash outlays in a given year:
 \begin{equation}
@@ -149,6 +153,18 @@ R_{cows,t} = p_{\theta,t} * \theta_t * y_t
 The price of cows in the simulation is held constant at \$850/cow.
 
 \subsubsection{Insurance Revenues}
+
+\subsubsection{Normal Operating Costs}
+Normal operating costs increase at a constant rate with the number of cows in the herd. Normal (non-drought) supplemental feed costs are assumed to be included in this rate. Fixed operating costs, $x$, do not depend on herd size.
+\begin{equation}
+C_{op,t} = c * \theta_t + x
+\end{equation}
+In the simulation, the per cow normal operating cost, $c$, is \$500. Further, in the simulation, fixed costs $x = \$0$. The implicit assumption of no fixed costs does not affect the results place because we do not allow those in the simulation to completely exit the ranching business. Players can reduce the size of the herd, but they cannot exit entirely.
+
+\subsubsection{Adaptation Costs}
+
+
+\subsubsection{Interest Costs/Revenues}
 
 
 \subsubsection{Forage}
