@@ -1031,6 +1031,10 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear,
     shinyjs::disable(paste0("insCont", name))
   })
   
+  observeEvent(input[[paste0("nextBtn", orgName)]], {
+    shinyjs::disable(paste0("nextBtn", orgName))
+  })
+  
   # appendRangeHealth <- function(healthValue, rangeHealthList, currentYear){
   #   rangeHealthList[currentYear] <- healthValue
   #   # print(rangeHealthList)
