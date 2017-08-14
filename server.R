@@ -3,34 +3,16 @@ shinyServer(function(input, output, session) {
   source("R/simUI.R")
   source("R/shinySupportFunctions.R")
   
-  ## Calcualte indemnities for all years of the simulation
-  indem <- lapply(startYear:(startYear + simLength - 1), function(x){
-    with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
-                              pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
-  })
-  
-  indemprac <- lapply(startYearprac:(startYearprac + practiceLength - 1), function(x){
-    with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
-                                   pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
-  })
-  
-  ## Calculate binary variable for hypothetical payout based on the weather
-  ## If 
-  indemnity <- lapply(indem, "[[", 3) # Pulling the value of the indemnity from the (list of) dataframes
-  whatifIndem <- sapply(indemnity > 0, ifelse, 1, 0)  # Creating a binary variable where a year is eligible for a payout if you have insurance
-  
-  indemnityprac <- lapply(indemprac, "[[", 3) # Pulling the value of the indemnity from the (list of) dataframes
-  whatifIndemprac <- sapply(indemnityprac > 0, ifelse, 1, 0)
-  
-  # rangeHealthList <- rep(0, simLength)
-  # rangeHealthListprac <- rep(0, practiceLength)
-  
-  ## Is insurance purchased?
-  
   # Set reactive values--------------------------------------------------------
   # Reactive values used to track when inputs/outputs are saved at the end of practice round
   #  and regular round. Once values become TRUE simulation contineus
-  values <- reactiveValues("saveComplete" = FALSE, "practSaveComplete" = FALSE, 
+  values <- reactiveValues("indem" = lapply(startYear:(startYear + simLength - 1), function(x){
+                                        with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
+                                        pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))}),
+                           "indemprac" = lapply(startYearprac:(startYearprac + practiceLength - 1), function(x){
+                                        with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
+                                        pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))}),
+                           "saveComplete" = FALSE, "practSaveComplete" = FALSE, 
                            "purchaseInsurance" = T)
   results <- reactiveValues("myOuts" = createResultsFrame(simRuns))
   resultsprac <- reactiveValues("myOuts" = createResultsFrame(practiceRuns))
@@ -49,7 +31,18 @@ shinyServer(function(input, output, session) {
                  selector = "#navBar li a[data-value='Ranch Simulation']")
   }
   
-
+  ## Calculate binary variable for hypothetical payout based on the weather
+  ## If 
+  indemnity <- lapply(lapply(startYear:(startYear + simLength - 1), function(x){
+    with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
+                                 pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))}), "[[", 3) # Pulling the value of the indemnity from the (list of) dataframes
+  whatifIndem <- sapply(indemnity > 0, ifelse, 1, 0)  # Creating a binary variable where a year is eligible for a payout if you have insurance
+  
+  indemnityprac <- lapply(lapply(startYearprac:(startYearprac + practiceLength - 1), function(x){
+    with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
+                                      pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))}), "[[", 3) # Pulling the value of the indemnity from the (list of) dataframes
+  whatifIndemprac <- sapply(indemnityprac > 0, ifelse, 1, 0)
+  
 
   # Create pratice and simulation tabs-----------------------------------------
   
@@ -59,13 +52,13 @@ shinyServer(function(input, output, session) {
   
   # Create main simulation ui/output
   lapply(1:simLength, function(i){
-    simCreator(input, output, session, i, rv, simLength, startYear, results, indem, values$purchaseInsurance, whatifIndem)
+    simCreator(input, output, session, i, rv, simLength, startYear, results, values$indem, values$purchaseInsurance, whatifIndem)
   }) 
   
   # Create practice simulation ui/output, everything is the same except "prac" 
   #   is appended to the end of all object names
   lapply(1:practiceLength, function(i){
-    simCreator(input, output, session, i, rvPrac, practiceLength, startYearprac, resultsprac, indemprac, values$purchaseInsurance, whatifIndemprac, name = "prac")
+    simCreator(input, output, session, i, rvPrac, practiceLength, startYearprac, resultsprac, values$indemprac, values$purchaseInsurance, whatifIndemprac, name = "prac")
   })
 
   # Observers for practice simulation------------------------------------------
@@ -79,29 +72,29 @@ shinyServer(function(input, output, session) {
       
       # Sets ins to false and resets all ins variables to zero, recreates output frames
       values$purchaseInsurance <- FALSE
-      indem <<- lapply(indem, function(x){
+      values$indem <- lapply(values$indem, function(x){
         x[, c("producer_prem", "indemnity", "full_prem") := 0]
         return(x)
       })
-      indemprac <<- lapply(indemprac, function(x){
+      values$indemprac <- lapply(values$indemprac, function(x){
         x[, c("producer_prem", "indemnity", "full_prem") := 0]
         return(x)
       })
-      resultsprac$myOuts[1, cost.ins := indem[[1]]$producer_prem]
+      resultsprac$myOuts[1, cost.ins := values$indem[[1]]$producer_prem]
     }else{ # Excuted for all users with insurance
       
       # Sets ins to false and resets all ins variables to zero, recreates output frames
       values$purchaseInsurance <- TRUE
-      indem <<- lapply(startYear:(startYear + simLength - 1), function(x){
+      values$indem <- lapply(startYear:(startYear + simLength - 1), function(x){
         with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                   pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
       })
       
-      indemprac <<- lapply(startYearprac:(startYearprac + practiceLength - 1), function(x){
+      values$indemprac <- lapply(startYearprac:(startYearprac + practiceLength - 1), function(x){
         with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                        pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
       })
-      resultsprac$myOuts[1, cost.ins := indemprac[[1]]$producer_prem]
+      resultsprac$myOuts[1, cost.ins := values$indemprac[[1]]$producer_prem]
     }
     
     # Disable elements and move active tab
@@ -127,7 +120,7 @@ shinyServer(function(input, output, session) {
   # Triggered when a user clicks the begin ranch game button after practice 
   #   round has been completed disable elements and switch active tab
   observeEvent(input$simStart, {
-    results$myOuts[1, cost.ins := indem[[1]]$producer_prem]
+    results$myOuts[1, cost.ins := values$indem[[1]]$producer_prem]
     disable("simStart")
     toggleClass(class = "disabled",
                 selector = "#navBar li a[data-value='Practice Simulation']")
@@ -358,7 +351,7 @@ shinyServer(function(input, output, session) {
   
   # Code for debugging---------------------------------------------------------
   observeEvent(input$reset_button, {
-    createOutputs(practiceRuns, simRuns, indem, indemprac)
+    createOutputs(practiceRuns, simRuns, values$indem, values$indemprac)
     js$reset()
   })
 
