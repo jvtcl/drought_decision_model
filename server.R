@@ -26,12 +26,12 @@ shinyServer(function(input, output, session) {
   # rangeHealthListprac <- rep(0, practiceLength)
   
   ## Is insurance purchased?
-  purchaseInsurance <- T
   
   # Set reactive values--------------------------------------------------------
   # Reactive values used to track when inputs/outputs are saved at the end of practice round
   #  and regular round. Once values become TRUE simulation contineus
-  values <- reactiveValues("saveComplete" = FALSE, "practSaveComplete" = FALSE)
+  values <- reactiveValues("saveComplete" = FALSE, "practSaveComplete" = FALSE, 
+                           "purchaseInsurance" = T)
   results <- reactiveValues("myOuts" = createResultsFrame(simRuns))
   resultsprac <- reactiveValues("myOuts" = createResultsFrame(practiceRuns))
   # results$myOuts[1, cost.ins := indem[[1]]$producer_prem]
@@ -59,13 +59,13 @@ shinyServer(function(input, output, session) {
   
   # Create main simulation ui/output
   lapply(1:simLength, function(i){
-    simCreator(input, output, session, i, rv, simLength, startYear, results, indem, purchaseInsurance, whatifIndem)
+    simCreator(input, output, session, i, rv, simLength, startYear, results, indem, values$purchaseInsurance, whatifIndem)
   }) 
   
   # Create practice simulation ui/output, everything is the same except "prac" 
   #   is appended to the end of all object names
   lapply(1:practiceLength, function(i){
-    simCreator(input, output, session, i, rvPrac, practiceLength, startYearprac, resultsprac, indemprac, purchaseInsurance, whatifIndemprac, name = "prac")
+    simCreator(input, output, session, i, rvPrac, practiceLength, startYearprac, resultsprac, indemprac, values$purchaseInsurance, whatifIndemprac, name = "prac")
   })
 
   # Observers for practice simulation------------------------------------------
@@ -78,7 +78,7 @@ shinyServer(function(input, output, session) {
     if(as.numeric(input$user.ID) >= 2000000){ # Mturk >= 2000000 is no insurance
       
       # Sets ins to false and resets all ins variables to zero, recreates output frames
-      purchaseInsurance <<- FALSE
+      values$purchaseInsurance <- FALSE
       indem <<- lapply(indem, function(x){
         x[, c("producer_prem", "indemnity", "full_prem") := 0]
         return(x)
@@ -91,7 +91,7 @@ shinyServer(function(input, output, session) {
     }else{ # Excuted for all users with insurance
       
       # Sets ins to false and resets all ins variables to zero, recreates output frames
-      purchaseInsurance <<- TRUE
+      values$purchaseInsurance <- TRUE
       indem <<- lapply(startYear:(startYear + simLength - 1), function(x){
         with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                   pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
