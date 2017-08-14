@@ -259,28 +259,28 @@ shinyServer(function(input, output, session) {
     saveData <- t(saveData)
     
     # Saves data to MySQL
-    # withProgress(message = "Saving Data", value = 1/3, {
-    #   print("Saving data")
-    #   print("Connecting to MySQL server")
-    #   simSheet <- "cowGameOutputs"
-    #   con <- dbConnect(MySQL(),
-    #                    user = 'cowgame',
-    #                    password = 'cowsrock',
-    #                    host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
-    #                    dbname = 'cowgame')
-    #   print("Connection successful, saving data")
-    #   incProgress(1/3)
-    #   dbWriteTable(conn = con, 
-    #                name = 'cowGameOutputs', 
-    #                value = as.data.frame(results$myOuts), 
-    #                overwrite=FALSE, 
-    #                append = TRUE)
-    #   print("Data save complete")
-    #   print("Disconnecting from MySQL Server")
-    #   dbDisconnect(conn=con)
-    #   print("Disconnect complete")
-    # 
-    # })
+    withProgress(message = "Saving Data", value = 1/3, {
+      print("Saving data")
+      print("Connecting to MySQL server")
+      simSheet <- "cowGameOutputs"
+      con <- dbConnect(MySQL(),
+                       user = 'cowgame',
+                       password = 'cowsrock',
+                       host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
+                       dbname = 'cowgame')
+      print("Connection successful, saving data")
+      incProgress(1/3)
+      dbWriteTable(conn = con,
+                   name = 'cowGameOutputs',
+                   value = as.data.frame(results$myOuts),
+                   overwrite=FALSE,
+                   append = TRUE)
+      print("Data save complete")
+      print("Disconnecting from MySQL Server")
+      dbDisconnect(conn=con)
+      print("Disconnect complete")
+
+    })
     values$saveComplete <- TRUE
   })
   
@@ -320,28 +320,28 @@ shinyServer(function(input, output, session) {
     # Pivot save data to horizontal
     saveData <- t(saveData)
     # Remove first row of variable names
-    # withProgress(message = "Saving Data", value = 1/3, {
-    #   print("Saving data")
-    #   print("Connecting to MySQL server")
-    #   pracSheet <- "practiceGameOutputs"
-    #   con <- dbConnect(MySQL(),
-    #                    user = 'cowgame',
-    #                    password = 'cowsrock',
-    #                    host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
-    #                    dbname = 'cowgame')
-    #   print("Connection successful, saving data")
-    #   outputTable <- resultsprac$myOuts[1:6]
-    #   incProgress(1/3)
-    #   dbWriteTable(conn = con, 
-    #                name = 'practiceGameOutputs', 
-    #                value = as.data.frame(outputTable), 
-    #                overwrite = FALSE, 
-    #                append = TRUE)
-    #   print("Data save complete")
-    #   print("Disconnecting from MySQL Server")
-    #   dbDisconnect(conn=con)
-    #   print("Disconnect complete")
-    # })
+    withProgress(message = "Saving Data", value = 1/3, {
+      print("Saving data")
+      print("Connecting to MySQL server")
+      pracSheet <- "practiceGameOutputs"
+      con <- dbConnect(MySQL(),
+                       user = 'cowgame',
+                       password = 'cowsrock',
+                       host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
+                       dbname = 'cowgame')
+      print("Connection successful, saving data")
+      outputTable <<- resultsprac$myOuts[1:6]
+      incProgress(1/3)
+      dbWriteTable(conn = con,
+                   name = 'practiceGameOutputs',
+                   value = as.data.frame(outputTable),
+                   overwrite = FALSE,
+                   append = TRUE)
+      print("Data save complete")
+      print("Disconnecting from MySQL Server")
+      dbDisconnect(conn=con)
+      print("Disconnect complete")
+    })
     values$practSaveComplete <- TRUE
     
     shinyjs::disable("savePracInputs")
