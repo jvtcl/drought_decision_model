@@ -31,8 +31,10 @@ shinyServer(function(input, output, session) {
   # Set reactive values--------------------------------------------------------
   # Reactive values used to track when inputs/outputs are saved at the end of practice round
   #  and regular round. Once values become TRUE simulation contineus
-  values <- reactiveValues("saveComplete" = FALSE, "practSaveComplete" = FALSE, "myOuts" = createResultsFrame(simRuns))
-  # values$myOuts[1, cost.ins := indem[[1]]$producer_prem]
+  values <- reactiveValues("saveComplete" = FALSE, "practSaveComplete" = FALSE)
+  results <- reactiveValues("myOuts" = createResultsFrame(simRuns))
+  resultsprac <- reactiveValues("myOuts" = createResultsFrame(practiceRuns))
+  # results$myOuts[1, cost.ins := indem[[1]]$producer_prem]
   
   # Reactive value used to track what page to display, once value changes display page changes
   rv <- reactiveValues(page = 1, scrollPage = F)
@@ -57,13 +59,13 @@ shinyServer(function(input, output, session) {
   
   # Create main simulation ui/output
   lapply(1:simLength, function(i){
-    simCreator(input, output, session, i, rv, simLength, startYear, values, indem, purchaseInsurance, whatifIndem)
+    simCreator(input, output, session, i, rv, simLength, startYear, results, indem, purchaseInsurance, whatifIndem)
   }) 
   
   # Create practice simulation ui/output, everything is the same except "prac" 
   #   is appended to the end of all object names
   lapply(1:practiceLength, function(i){
-    simCreator(input, output, session, i, rvPrac, practiceLength, startYearprac, values, indemprac, purchaseInsurance, whatifIndemprac, name = "prac")
+    simCreator(input, output, session, i, rvPrac, practiceLength, startYearprac, resultsprac, indemprac, purchaseInsurance, whatifIndemprac, name = "prac")
   })
 
   # Observers for practice simulation------------------------------------------
@@ -85,7 +87,7 @@ shinyServer(function(input, output, session) {
         x[, c("producer_prem", "indemnity", "full_prem") := 0]
         return(x)
       })
-      values$myOuts[1, cost.ins := indemprac[[1]]$producer_prem]
+      resultsprac$myOuts[1, cost.ins := indem[[1]]$producer_prem]
     }else{ # Excuted for all users with insurance
       
       # Sets ins to false and resets all ins variables to zero, recreates output frames
@@ -99,7 +101,7 @@ shinyServer(function(input, output, session) {
         with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                        pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
       })
-      values$myOuts[1, cost.ins := indemprac[[1]]$producer_prem]
+      resultsprac$myOuts[1, cost.ins := indemprac[[1]]$producer_prem]
     }
     
     # Disable elements and move active tab
@@ -125,7 +127,7 @@ shinyServer(function(input, output, session) {
   # Triggered when a user clicks the begin ranch game button after practice 
   #   round has been completed disable elements and switch active tab
   observeEvent(input$simStart, {
-    values$myOuts[1, cost.ins := indem[[1]]$producer_prem]
+    results$myOuts[1, cost.ins := indem[[1]]$producer_prem]
     disable("simStart")
     toggleClass(class = "disabled",
                 selector = "#navBar li a[data-value='Practice Simulation']")
@@ -151,15 +153,15 @@ shinyServer(function(input, output, session) {
       fluidRow(
         h4(paste0("Congratulations! You've completed ", practiceLength, " years of ranching.")),
         br(),
-        h4(p(paste0("You have accumulated $", prettyNum(round(values$myOuts$assets.cash[practiceLength + 1], 0), digits = 2, 
+        h4(p(paste0("You have accumulated $", prettyNum(round(resultsprac$myOuts$assets.cash[practiceLength + 1], 0), digits = 2, 
                                                         big.mark = ",", scientific = FALSE), " in cash." ))),
-        h4(p(paste0("Your herd is now worth $", prettyNum(round(values$myOuts$assets.cow[practiceLength + 1], 0),
+        h4(p(paste0("Your herd is now worth $", prettyNum(round(resultsprac$myOuts$assets.cow[practiceLength + 1], 0),
                                                           digits = 2, big.mark = ",", scientific = FALSE), "."))),
         h4(p(paste0("Based on your savings account and your herd worth, your total net worth is $", 
-                    prettyNum(round(values$myOuts$net.wrth[practiceLength + 1], 0), digits = 2, big.mark = ",",
+                    prettyNum(round(resultsprac$myOuts$net.wrth[practiceLength + 1], 0), digits = 2, big.mark = ",",
                               scientific = FALSE), "."))), 
                 # With a conversation rate of $500,000 of simulation money to $1 of MTurk bonus money, you've earned $", 
-                # round(values$myOuts$net.wrth[practiceLength + 1] * 1/simRuns$mturk.conv, 2),"."))),
+                # round(resultsprac$myOuts$net.wrth[practiceLength + 1] * 1/simRuns$mturk.conv, 2),"."))),
         h4(p(paste0("This is a practice simulation, so the money you have earned
                     in this simulation does not count."))),
         br(),
@@ -192,16 +194,16 @@ shinyServer(function(input, output, session) {
       h4(paste0("Congratulations! You've completed ", simLength, " years of ranching.")),
       br(),
       p(paste0("You have accumulated $", 
-               prettyNum(round(values$myOuts$assets.cash[simLength + 1], 0),
+               prettyNum(round(results$myOuts$assets.cash[simLength + 1], 0),
                          digits = 2, big.mark = ",", scientific = FALSE), " in cash." )),
       p(paste0("Your herd is now worth $", 
-               prettyNum(round(values$myOuts$assets.cow[simLength + 1], 0),
+               prettyNum(round(results$myOuts$assets.cow[simLength + 1], 0),
                          digits = 2, big.mark = ",", scientific = FALSE), ".")),
       p(paste0("Based on your savings account and your herd worth, your total net worth is $", 
-               prettyNum(round(values$myOuts$net.wrth[simLength + 1], 0),
+               prettyNum(round(results$myOuts$net.wrth[simLength + 1], 0),
                          digits = 2, big.mark = ",", scientific = FALSE), ".")),
               # With a conversation rate of $500,000 of simulation money to $1 of MTurk bonus money, you've earned $", 
-              # round(values$myOuts$net.wrth[simLength + 1] * 1/simRuns$mturk.conv, 2),".")),
+              # round(results$myOuts$net.wrth[simLength + 1] * 1/simRuns$mturk.conv, 2),".")),
       p("You have now completed the ranching simulation. Save your inputs to receive the code you
         need to complete the rest of the survey."),
       actionButton("saveInputs", "Save results and receive completion code"),
@@ -240,7 +242,7 @@ shinyServer(function(input, output, session) {
 
       # Remove first row of variable names
       write.csv(saveData, file = paste0("results/input", input$fileName, ".csv"), row.names = F)
-      write.csv(values$myOuts, file = paste0("results/output", input$fileName, ".csv"), row.names = F)
+      write.csv(results$myOuts, file = paste0("results/output", input$fileName, ".csv"), row.names = F)
   })
 
   # Observer to save real simulation inputs  
@@ -264,28 +266,28 @@ shinyServer(function(input, output, session) {
     saveData <- t(saveData)
     
     # Saves data to MySQL
-    withProgress(message = "Saving Data", value = 1/3, {
-      print("Saving data")
-      print("Connecting to MySQL server")
-      simSheet <- "cowGameOutputs"
-      con <- dbConnect(MySQL(),
-                       user = 'cowgame',
-                       password = 'cowsrock',
-                       host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
-                       dbname = 'cowgame')
-      print("Connection successful, saving data")
-      incProgress(1/3)
-      dbWriteTable(conn = con, 
-                   name = 'cowGameOutputs', 
-                   value = as.data.frame(values$myOuts), 
-                   overwrite=FALSE, 
-                   append = TRUE)
-      print("Data save complete")
-      print("Disconnecting from MySQL Server")
-      dbDisconnect(conn=con)
-      print("Disconnect complete")
-
-    })
+    # withProgress(message = "Saving Data", value = 1/3, {
+    #   print("Saving data")
+    #   print("Connecting to MySQL server")
+    #   simSheet <- "cowGameOutputs"
+    #   con <- dbConnect(MySQL(),
+    #                    user = 'cowgame',
+    #                    password = 'cowsrock',
+    #                    host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
+    #                    dbname = 'cowgame')
+    #   print("Connection successful, saving data")
+    #   incProgress(1/3)
+    #   dbWriteTable(conn = con, 
+    #                name = 'cowGameOutputs', 
+    #                value = as.data.frame(results$myOuts), 
+    #                overwrite=FALSE, 
+    #                append = TRUE)
+    #   print("Data save complete")
+    #   print("Disconnecting from MySQL Server")
+    #   dbDisconnect(conn=con)
+    #   print("Disconnect complete")
+    # 
+    # })
     values$saveComplete <- TRUE
   })
   
@@ -312,7 +314,7 @@ shinyServer(function(input, output, session) {
     print("3")
     outputSheet <- gs_title("cowGameOutputsTest")
     print("4")
-    gs_add_row(outputSheet, ws="Outputs", input = values$myOuts)
+    gs_add_row(outputSheet, ws="Outputs", input = results$myOuts)
   })
   
   
@@ -325,33 +327,33 @@ shinyServer(function(input, output, session) {
     # Pivot save data to horizontal
     saveData <- t(saveData)
     # Remove first row of variable names
-    withProgress(message = "Saving Data", value = 1/3, {
-      print("Saving data")
-      print("Connecting to MySQL server")
-      pracSheet <- "practiceGameOutputs"
-      con <- dbConnect(MySQL(),
-                       user = 'cowgame',
-                       password = 'cowsrock',
-                       host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
-                       dbname = 'cowgame')
-      print("Connection successful, saving data")
-      outputTable <- values$myOuts[1:6]
-      incProgress(1/3)
-      dbWriteTable(conn = con, 
-                   name = 'practiceGameOutputs', 
-                   value = as.data.frame(outputTable), 
-                   overwrite = FALSE, 
-                   append = TRUE)
-      print("Data save complete")
-      print("Disconnecting from MySQL Server")
-      dbDisconnect(conn=con)
-      print("Disconnect complete")
-    })
+    # withProgress(message = "Saving Data", value = 1/3, {
+    #   print("Saving data")
+    #   print("Connecting to MySQL server")
+    #   pracSheet <- "practiceGameOutputs"
+    #   con <- dbConnect(MySQL(),
+    #                    user = 'cowgame',
+    #                    password = 'cowsrock',
+    #                    host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
+    #                    dbname = 'cowgame')
+    #   print("Connection successful, saving data")
+    #   outputTable <- resultsprac$myOuts[1:6]
+    #   incProgress(1/3)
+    #   dbWriteTable(conn = con, 
+    #                name = 'practiceGameOutputs', 
+    #                value = as.data.frame(outputTable), 
+    #                overwrite = FALSE, 
+    #                append = TRUE)
+    #   print("Data save complete")
+    #   print("Disconnecting from MySQL Server")
+    #   dbDisconnect(conn=con)
+    #   print("Disconnect complete")
+    # })
     values$practSaveComplete <- TRUE
     
     shinyjs::disable("savePracInputs")
     # write.csv(saveData, file = paste0("results/input", lastFile + 1, ".csv"), row.names = F)
-    # write.csv(values$myOuts, file = paste0("results/output", lastFile + 1, ".csv"), row.names = F)
+    # write.csv(results$myOuts, file = paste0("results/output", lastFile + 1, ".csv"), row.names = F)
   })
   
   # Code for debugging---------------------------------------------------------
