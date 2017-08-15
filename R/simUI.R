@@ -14,9 +14,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   # Number of calves currently avaialble using normal wean success at start of year
   #   and then wean success based on available forage at end of year
   assign(paste0("calvesAvailable", name), reactive({
-    print("hello")
     if(!is.null(input[[paste0("insCont", name)]])){  
-      if(input[[paste0("insCont", name)]] == 1){
+      if(input[[paste0("insCont", name)]] >=1){
         calvesAvailable <- values$myOuts[i, herd] * 
           AdjWeanSuccess(get(paste0("totalForage", name))(), 
                          values$myOuts[i , total.forage], 
@@ -26,18 +25,16 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
           AdjWeanSuccess(1, values$myOuts[i , total.forage], simRuns$normal.wn.succ)
       }
     }else{
-      print(values$myOuts)
       calvesAvailable <- values$myOuts[i, herd] * 
         AdjWeanSuccess(1, values$myOuts[i , total.forage], simRuns$normal.wn.succ)
     }
-    print("goodbye")
     return(calvesAvailable)
   }))
   
   # Reactive to track current calf production
   assign(paste0("calfPro", name), reactive({
     if(!is.null(input[[paste0("insCont", name)]])){  
-      if(input[[paste0("insCont", name)]] == 1){
+      if(input[[paste0("insCont", name)]] >=1){
         calfPro <- 
           AdjWeanSuccess(get(paste0("totalForage", name))(), 
                          values$myOuts[i , total.forage], simRuns$normal.wn.succ)
@@ -57,22 +54,22 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   assign(paste0("bankBalance", name), reactive({
     balance <- values$myOuts[i, assets.cash]
     if(!is.null(input[[paste0("year", name, "Start")]])){  
-      if(input[[paste0("year", name, "Start")]] == 1){
+      if(input[[paste0("year", name, "Start")]] >=1){
         balance <- balance - indem[[i]]$producer_prem
       }
     }
     if(!is.null(input[[paste0("year", name, "Summer")]])){  
-      if(input[[paste0("year", name, "Summer")]] == 1){
+      if(input[[paste0("year", name, "Summer")]] >=1){
         balance <- balance - get(paste0("hay", name))()
       }
     }
     if(!is.null(input[[paste0("insCont", name)]])){  
-      if(input[[paste0("insCont", name)]] == 1){
+      if(input[[paste0("insCont", name)]] >=1){
         balance <- balance + indem[[i]]$indemnity
       }
     }
     if(!is.null(input[[paste0("sell", name)]])){  
-      if(input[[paste0("sell", name)]] == 1){
+      if(input[[paste0("sell", name)]] >=1){
         balance <- values$myOuts[i + 1, assets.cash]
       }
     }
@@ -480,7 +477,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   ## Display rain info up to July and allow user to choose adaptation level
   output[[paste0("decision", name)]] <- renderUI({
     if(!is.null(input[[paste0("year", name, "Start")]])){  
-      if(input[[paste0("year", name, "Start")]] == 1){
+      if(input[[paste0("year", name, "Start")]] >=1){
         tagList(
           getJulyInfo(i, name, startYear, values$myOuts)
         )
@@ -502,7 +499,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   ## Display Update for insurance info
   output[[paste0("insuranceUpdate", name)]] <- renderUI({
     if(!is.null(input[[paste0("year", name, "Summer")]])){
-       if(input[[paste0("year", name, "Summer")]] == 1){
+       if(input[[paste0("year", name, "Summer")]] >=1){
         currentIndem <- prettyNum(indem[[i]]$indemnity, digits = 0, big.mark=",",scientific=FALSE)
         tagList(
           br(),
@@ -732,7 +729,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   ## Create a button to continue after selecting adaptation level
   output[[paste0("continue", name)]] <- renderUI({
     if(!is.null(input[[paste0("year", name, "Start")]])){
-      if(input[[paste0("year", name, "Start")]] == 1){
+      if(input[[paste0("year", name, "Start")]] >=1){
         validate(
           need(is.numeric(get(paste0("hay", name))()), "Please enter a valid number")
         )
@@ -745,10 +742,10 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   
   output[[paste0("nextButton", name)]] <- renderUI({
     if(!is.null(input[[paste0("sell", name)]])){
-      if(input[[paste0("sell", name)]] == 1){
+      if(input[[paste0("sell", name)]] >=1){
         rv$scrollPage <- T
         tagList(
-          actionButton(paste0("nextBtn", orgName), "Begin Next Year >")
+          actionButton(paste0("nextBtn", name), "Begin Next Year >")
         )
       }
     }
@@ -856,7 +853,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   
   output[[paste0("cowPlot", name)]] <- renderPlot({
     if(!is.null(input[[paste0("year", name, "Summer")]])){
-      if(input[[paste0("year", name, "Summer")]] == 1){
+      if(input[[paste0("year", name, "Summer")]] >=1){
 
         cows <- input[[paste0("cow", name, "Sale")]]
         calves <- input[[paste0("calves", name, "Sale")]]
@@ -998,8 +995,12 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   
   # Reactive to disable start simulation button after they're clicked
   observeEvent(input[[paste0("year", name, "Start")]], {
+    print(paste("button is: ", input[[paste0("year", name, "Start")]]))
     shinyjs::disable(paste0("year", name, "Start"))
   })
+  observeEvent(input[[paste0("nextBtn", name)]],{
+    rv$page <- i + 1
+  }) 
 
   observeEvent(rv$scrollPage, {
     req(rv$scrollPage)
@@ -1036,8 +1037,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     shinyjs::disable(paste0("insCont", name))
   })
   
-  observeEvent(input[[paste0("nextBtn", orgName)]], {
-    shinyjs::disable(paste0("nextBtn", orgName))
+  observeEvent(input[[paste0("nextBtn", name)]], {
+    shinyjs::disable(paste0("nextBtn", name))
   })
   
   # appendRangeHealth <- function(healthValue, rangeHealthList, currentYear){
