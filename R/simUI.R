@@ -995,7 +995,6 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   
   # Reactive to disable start simulation button after they're clicked
   observeEvent(input[[paste0("year", name, "Start")]], {
-    print(paste("button is: ", input[[paste0("year", name, "Start")]]))
     shinyjs::disable(paste0("year", name, "Start"))
   })
   observeEvent(input[[paste0("nextBtn", name)]],{
