@@ -7,28 +7,28 @@ shinyServer(function(input, output, session) {
   # Reactive values used to track when inputs/outputs are saved at the end of practice round
   #  and regular round. Once values become TRUE simulation contineus
   values <- reactiveValues("indem" = lapply(startYear:(startYear + simLength - 1), function(x){
-                                        with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
+    with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
+                                 pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))}),
+    "indemprac" = lapply(startYearprac:(startYearprac + practiceLength - 1), function(x){
+      with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                         pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))}),
-                           "indemprac" = lapply(startYearprac:(startYearprac + practiceLength - 1), function(x){
-                                        with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
-                                        pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))}),
-                           "saveComplete" = FALSE, "practSaveComplete" = FALSE, 
-                           "purchaseInsurance" = T)
-  results <- reactiveValues("myOuts" = createResultsFrame(simRuns))
-  resultsprac <- reactiveValues("myOuts" = createResultsFrame(practiceRuns))
+    "saveComplete" = FALSE, "practSaveComplete" = FALSE, 
+    "purchaseInsurance" = T)
+  results <- reactiveValues("myOuts" = NULL)
+  resultsprac <- reactiveValues("myOuts" = NULL)
   # results$myOuts[1, cost.ins := indem[[1]]$producer_prem]
   
   # Reactive value used to track what page to display, once value changes display page changes
   rv <- reactiveValues(page = 1, scrollPage = F)
   rvPrac <- reactiveValues(page = 1)
   
-
+  
   
   if(!debugMode){
     toggleClass(class = "disabled",
                 selector = "#navBar li a[data-value='Practice Simulation']")
     toggleClass(class = "disabled",
-                 selector = "#navBar li a[data-value='Ranch Simulation']")
+                selector = "#navBar li a[data-value='Ranch Simulation']")
   }
   
   ## Calculate binary variable for hypothetical payout based on the weather
@@ -43,7 +43,7 @@ shinyServer(function(input, output, session) {
                                       pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))}), "[[", 3) # Pulling the value of the indemnity from the (list of) dataframes
   whatifIndemprac <- sapply(indemnityprac > 0, ifelse, 1, 0)
   
-
+  
   # Create pratice and simulation tabs-----------------------------------------
   
   # Each lapply cycles through the simCreator function to create all the ui and
@@ -60,13 +60,14 @@ shinyServer(function(input, output, session) {
   lapply(1:practiceLength, function(i){
     simCreator(input, output, session, i, rvPrac, practiceLength, startYearprac, resultsprac, values$indemprac, values$purchaseInsurance, whatifIndemprac, name = "prac")
   })
-
+  
   # Observers for practice simulation------------------------------------------
   
   # Observer triggered when user starts practice round switches to prac
   #   simulation tab and allows user to begin game
   observeEvent(input$pracStart, {
-    
+    resultsprac$myOuts <- createResultsFrame(practiceRuns, input$user.ID)
+    results$myOuts <- createResultsFrame(simRuns, input$user.ID)
     # Checks to see if user has been randomly assigned insurnace or not
     if(as.numeric(input$user.ID) >= 2000000){ # Mturk >= 2000000 is no insurance
       
