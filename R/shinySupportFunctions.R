@@ -39,7 +39,6 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
   adaptInten <- c(adaptInten, 1)
   fullAdaptCost <- sapply(adaptInten, getAdaptCost, adpt_choice = "feed", pars = simRuns, 
                            days.act = 180, current_herd = herd)
-  print(fullAdaptCost)
   adaptMax <- max(fullAdaptCost)
   ## Round outputs for display
   forageList <- round(forageList, 2) * 100
