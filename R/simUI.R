@@ -733,6 +733,9 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
         validate(
           need(is.numeric(get(paste0("hay", name))()), "Please enter a valid number")
         )
+        validate(
+          need(as.numeric(get(paste0("hay", name))()) >= 0, "Hay purchase cannot be negative")
+        )
         tagList(
           actionButton(paste0("year", name, "Summer"), "Purchase Hay")
         )
