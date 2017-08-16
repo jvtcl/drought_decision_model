@@ -39,6 +39,7 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
   adaptInten <- c(adaptInten, 1)
   fullAdaptCost <- sapply(adaptInten, getAdaptCost, adpt_choice = "feed", pars = simRuns, 
                            days.act = 180, current_herd = herd)
+  print(fullAdaptCost)
   adaptMax <- max(fullAdaptCost)
   ## Round outputs for display
   forageList <- round(forageList, 2) * 100
@@ -158,7 +159,8 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
     # ,
     br(),
     p("Remember that if you do not have enough money in the bank to cover the cost of hay you will automatically borrow at a 5% interest. Also, you do not need to specifically follow the recommended hay amounts - you can purchase any amount. "),
-    textInput(paste0("d", name, "adaptExpend"), "How much hay, if any, do you want to purchase for your herd?", width = "100%")
+    sliderInput(paste0("d", name, "adaptExpend"), "How much hay, if any, do you want to purchase for your herd?", 
+                min = 0, max = adaptMax, value = 0, step = 100, width = "100%")
   )
 }
 
