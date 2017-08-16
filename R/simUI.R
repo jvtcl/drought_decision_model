@@ -432,7 +432,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
                       content = paste0("This is the current market value of your herd combined with your bank balance."),
                       placement = "bottom", 
                       trigger = "hover", 
-                      options = list(container = "body")) 
+                      options = list(container = "body")),
+            actionButton("diagDump", "Unable to continue simulation")
             
           )
         )
