@@ -151,15 +151,22 @@ ggplot(noaadata2, aes(Year, mm)) +
 
 
 #creating monthly precip dataframe
-monthlyPrecipWeights <- data.frame("Rainfall" = c(0.0, 0.0, 0.02, 0.08,0.20,0.28,0.15,0.12,0.10,0.05,0.0,0.0), 
-                                   "Months" = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", 
-                                                "Aug", "Sep", "Oct", "Nov", "Dec"))
+monthlyPrecipWeights <- data.frame("Rainfall" = c(0.0, 0.0, 0.02, 
+                                                  0.08,0.20,0.28,
+                                                  0.15,0.12,0.10,
+                                                   0.05,0.0,0.0), 
+                                   "Months" = c("Jan", "Feb", "Mar", "Apr", 
+                                                "May", "Jun", "Jul", "Aug", 
+                                                "Sep", "Oct", "Nov", "Dec"))
 
-monthlyPrecipWeights$Months <- factor(monthlyPrecipWeights$Months, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+monthlyPrecipWeights$Months <- factor(monthlyPrecipWeights$Months, 
+                                      levels = c("Jan", "Feb", "Mar", "Apr", 
+                                                 "May", "Jun", "Jul", "Aug", 
+                                                 "Sep", "Oct", "Nov", "Dec"))
 
 
 #monthly precip graphd data
-ggplot(monthlyPrecipWeights, aes(Months, Rainfall)) +
+t1 = ggplot(monthlyPrecipWeights, aes(Months, Rainfall)) +
   geom_bar(aes(Months, Rainfall), stat = "identity", fill = "blue", alpha = .5) +
   geom_text(data=subset(monthlyPrecipWeights, Rainfall !=0), aes(label = Rainfall), position = position_dodge(width = .9), vjust =-.25) + 
   scale_y_continuous(breaks = c(seq(0,.30,.05))) +
@@ -179,4 +186,15 @@ ggplot(monthlyPrecipWeights, aes(Months, Rainfall)) +
 
 #Forage Proudction weights for monthly rainfall
 #Weight (%)
+library(plotly)
+
+ggplotly(t1)
+
+
+initialw = data.frame("totalF" = c(seq(0,1.3,.01)))
+
+initialw$w = ifelse(initialw$totalF >= 1, .88, 0)
+
+ggplot(initialw, aes(totalF, w)) +
+  geom_smooth(SE = FALSE)
 
