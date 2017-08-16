@@ -261,7 +261,7 @@ getStationGauge <- function(target.loc="CPER"){
   return(station.gauge)
 }
 
-createResultsFrame <- function(pars = NULL){
+createResultsFrame <- function(pars = NULL, user.ID){
   "
   Function: createResultsFrame
   Description: This function creates a theoretical previous result from the year before the simulation begins
@@ -301,6 +301,7 @@ createResultsFrame <- function(pars = NULL){
     sim_results[1, Gt := 0]
     sim_results[1, forage.potential := 1]
     sim_results[1, total.forage := 1]
+    sim_results[, mTurkID :=  user.ID]
     
   ## if pars isn't prsent fills in everything with 0's 
   }else{

@@ -432,7 +432,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
                       content = paste0("This is the current market value of your herd combined with your bank balance."),
                       placement = "bottom", 
                       trigger = "hover", 
-                      options = list(container = "body")) 
+                      options = list(container = "body")),
+            actionButton("diagDump", "Unable to continue simulation")
             
           )
         )
@@ -732,6 +733,9 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
       if(input[[paste0("year", name, "Start")]] >=1){
         validate(
           need(is.numeric(get(paste0("hay", name))()), "Please enter a valid number")
+        )
+        validate(
+          need(as.numeric(get(paste0("hay", name))()) >= 0, "Hay purchase cannot be negative")
         )
         tagList(
           actionButton(paste0("year", name, "Summer"), "Purchase Hay")

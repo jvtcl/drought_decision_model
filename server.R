@@ -14,8 +14,8 @@ shinyServer(function(input, output, session) {
                                         pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))}),
                            "saveComplete" = FALSE, "practSaveComplete" = FALSE, 
                            "purchaseInsurance" = T)
-  results <- reactiveValues("myOuts" = createResultsFrame(simRuns))
-  resultsprac <- reactiveValues("myOuts" = createResultsFrame(practiceRuns))
+  results <- reactiveValues("myOuts" = NULL)
+  resultsprac <- reactiveValues("myOuts" = NULL)
   # results$myOuts[1, cost.ins := indem[[1]]$producer_prem]
   
   # Reactive value used to track what page to display, once value changes display page changes
@@ -66,7 +66,8 @@ shinyServer(function(input, output, session) {
   # Observer triggered when user starts practice round switches to prac
   #   simulation tab and allows user to begin game
   observeEvent(input$pracStart, {
-    
+    resultsprac$myOuts <- createResultsFrame(practiceRuns, input$user.ID)
+    results$myOuts <- createResultsFrame(simRuns, input$user.ID)
     # Checks to see if user has been randomly assigned insurnace or not
     if(as.numeric(input$user.ID) >= 2000000){ # Mturk >= 2000000 is no insurance
       
@@ -94,6 +95,7 @@ shinyServer(function(input, output, session) {
         with(practiceRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                        pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))
       })
+      
       resultsprac$myOuts[1, cost.ins := values$indemprac[[1]]$producer_prem]
     }
     
@@ -283,33 +285,47 @@ shinyServer(function(input, output, session) {
     })
     values$saveComplete <- TRUE
   })
-  
-  # Observer to save web inputs mid simulation, only for debug
-  observeEvent(input$saveStateWeb, {
-    
-    if(length(files) == 0){
-      lastFile <- 0
-    }else{
-      lastFile <- regmatches(files, gregexpr('[0-9]+',files))
-      lapply(lastFile, as.numeric) %>% unlist() %>% max() -> lastFile
-    }
-    saveData <<- reactiveValuesToList(input)
+
+  observeEvent(input$diagDump, {
+    shinyjs::disable("diagDump")
+    saveData <- reactiveValuesToList(input)
     saveData <- inputToDF(saveData)
-    
+    #saveData$names <- NULL
     # Pivot save data to horizontal
-    
+    print(saveData)
+    saveData <- saveData[order(names),]
+    print(saveData)
     saveData <- t(saveData)
-    # Remove first row of variable names
-    print("hello")
-    inputSheet <- gs_title("cowGameInputsTest")
-    print("2")
-    gs_add_row(inputSheet, ws="Inputs", input = saveData)
-    print("3")
-    outputSheet <- gs_title("cowGameOutputsTest")
-    print("4")
-    gs_add_row(outputSheet, ws="Outputs", input = results$myOuts)
+    print(saveData)
+    print("Saving data")
+    print("Connecting to MySQL server")
+    con <- dbConnect(MySQL(),
+                     user = 'cowgame',
+                     password = 'cowsrock',
+                     host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
+                     dbname = 'cowgame')
+    print("Connection successful, saving data")
+    dbWriteTable(conn = con,
+                 name = 'diagOutputs',
+                 value = as.data.frame(results$myOuts),
+                 overwrite = FALSE,
+                 append = TRUE)
+    dbWriteTable(conn = con,
+                 name = 'diagOutputsprac',
+                 value = as.data.frame(resultsprac$myOuts),
+                 overwrite = FALSE,
+                 append = TRUE)
+    print("output save complete")
+    dbWriteTable(conn = con,
+                 name = 'diagInputs',
+                 value = as.data.frame(saveData),
+                 overwrite = FALSE,
+                 append = TRUE)
+    print("Data save complete")
+    print("Disconnecting from MySQL Server")
+    dbDisconnect(conn=con)
+    print("Disconnect complete")
   })
-  
   
   observeEvent(input$savePracInputs, {
 
