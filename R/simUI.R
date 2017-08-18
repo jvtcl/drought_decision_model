@@ -191,20 +191,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     # Compute health info for sidebar display
     span(rangeHealth(i, values$myOuts), style = "color:white")
     delay(10,session$sendCustomMessage(type = "scrollCallbackTop", 0))
-    tagList(
-      tags$head(tags$style(HTML(
-        # CSS formating for the rollover buttons
-        ".inTextTips{
-        color:rgb(0, 0, 0);
-        text-align: left;
-        border-color: rgb(255,255,255);
-        background-color: rgb(255, 255, 255);
-  }
-        .inTextTips:hover{
-        color:rgb(0, 0, 0);
-        text-align: left;
-        border-color: rgb(255,255,255);
-        background-color: rgb(255, 255, 255);"))),
+    tagList(includeCSS("styles.css"),
       br(),
       h3(paste0("Year ", i,": Winter Finance Assessment")),
       p("Before calving season begins, it is time to take account of your herd, 
@@ -540,20 +527,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
               uiOutput(paste0("postDepositButt", name))
               )
           }else{
-            tagList(
-              tags$head(tags$style(HTML(
-                # CSS formating for the rollover buttons
-                ".inTextTips{
-                color:rgb(0, 0, 0);
-                text-align: left;
-                border-color: rgb(255,255,255);
-                background-color: rgb(255, 255, 255);
-          }
-                .inTextTips:hover{
-                color:rgb(0, 0, 0);
-                text-align: left;
-                border-color: rgb(255,255,255);
-                background-color: rgb(255, 255, 255);"))),
+            tagList(includeCSS("styles.css"),
               p("You got sufficient rain this summer, so your grass should be in good shape for your cattle! 
                 In the graph below you can see how much
                 it has rained since you decided whether or not to purchase hay (July and August)."),

@@ -27,6 +27,10 @@ div.outer {
   opacity: 0.95;
   transition-delay: 0;
 }
+
+/* CSS tags to control the button colors, .btn is the default state,
+focus is what happens after the button is clicked,
+hover is the response to a rollover */
 .btn {
 color:rgb(0, 0, 0);
 text-align: left;
@@ -43,6 +47,7 @@ color: rgb(255,255,255);
 font-weight: bold;
 }
 
+/* CSS formating for the rollover buttons */
 .quest{
 color:rgb(0, 0, 0);
 text-align: left;
@@ -59,12 +64,12 @@ background-color: rgb(245, 245, 245);
 .inTextTips{
 color:rgb(0, 0, 0);
 text-align: left;
-border-color: rgb(245,245,245);
-background-color: rgb(245, 245, 245);
+border-color: rgb(255,255,255);
+background-color: rgb(255,255,255);
             }
 .inTextTips:hover{
 color:rgb(0, 0, 0);
 text-align: left;
-border-color: rgb(245,245,245);
-background-color: rgb(245, 245, 245);
+border-color: rgb(255,255,255);
+background-color: rgb(255,255,255);
 }
