@@ -27,3 +27,44 @@ div.outer {
   opacity: 0.95;
   transition-delay: 0;
 }
+.btn {
+color:rgb(0, 0, 0);
+text-align: left;
+border-color: rgb(255,255,255);
+background-color: rgb(43, 181, 52);
+}
+.btn:focus{
+background-color:rgb(255,255,255);
+}
+.btn:hover{
+border-color: rgb(255,255,255);
+background-color: rgb(255,255,255);
+color: rgb(255,255,255);
+font-weight: bold;
+}
+
+.quest{
+color:rgb(0, 0, 0);
+text-align: left;
+border-color: rgb(245,245,245);
+background-color: rgb(245, 245, 245);
+}
+.quest:hover{
+color:rgb(0, 0, 0);
+text-align: left;
+border-color: rgb(245,245,245);
+background-color: rgb(245, 245, 245);
+}
+
+.inTextTips{
+color:rgb(0, 0, 0);
+text-align: left;
+border-color: rgb(245,245,245);
+background-color: rgb(245, 245, 245);
+            }
+.inTextTips:hover{
+color:rgb(0, 0, 0);
+text-align: left;
+border-color: rgb(245,245,245);
+background-color: rgb(245, 245, 245);
+}
