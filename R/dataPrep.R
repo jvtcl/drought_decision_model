@@ -45,6 +45,8 @@ library(scales)
 library(magrittr)
 library(RMySQL)
 library(extrafont)
+library(dplyr)
+library(plotly)
 
 #import fonts - first time running takes ~5min
 font_import()
@@ -184,17 +186,45 @@ t1 = ggplot(monthlyPrecipWeights, aes(Months, Rainfall)) +
 
 
 
-#Forage Proudction weights for monthly rainfall
+#Forage Proudction weights for monthly ra  infall
 #Weight (%)
 library(plotly)
 
 ggplotly(t1)
 
+#creating dataframe. Ft is Forage, Ft.1 is Forage year minus 1.
+initialw = data.frame("Ft.1" = c(rep(seq(from = .1,to = .9,by = .1),times=9)),
+                      "Ft" = rep(seq(.1,.9,by=.1),each=9))
 
-initialw = data.frame("totalF" = c(seq(0,1.3,.01)))
+initialww = initialw
 
-initialw$w = ifelse(initialw$totalF >= 1, .88, 0)
+initialww = mutate(initialww, w=ifelse(initialww$Ft >1 & initialww$Ft.1>=1, 88, NA))
 
-ggplot(initialw, aes(totalF, w)) +
-  geom_smooth(SE = FALSE)
+#Function "4" - w*Ft^(.25)*Ft-1 if Ft,Ft-1<1. 
+#mutate - create new column. first argument is dataframe, w = new column. 
+initialw = mutate(initialw, 
+                  w = ifelse(initialw$Ft < 1 & initialw$Ft.1 < 1, 
+                             ((.88*initialw$Ft)^.25*initialw$Ft.1)*100, NA))
 
+
+
+#convert to matrix. use reshape2 package. value.var is the name of column which stores values, while Ft~Ft.1 is x variable ~ y variable. 
+z <- acast(initialw, Ft ~ Ft.1, value.var = "w")
+
+#Now we have the matrix. the next step is to create the x and y axis labels for the 3d plot. If we don't create these, plotly will auto populate these values with each of the corresponding value's number - ex .1->1, .2->2....9->9, etc. 
+
+#because our row and column names are the same, we can name both x and y with just the rownames of z. 
+x <- y <- as.numeric(rownames(z))
+
+#now, we plot this shit out. 
+plot_ly(x = x,y = y,z = z, type = "surface", colors = c("red","orange","green")) %>% 
+  layout(scene = list(xaxis = list(title = 'Forage'),
+                      yaxis = list(title = 'Forage Year-1'),
+                      zaxis = list(title = 'Weaning Success Rate (%)')))
+
+#3d scatter plot of same function (4)
+plot_ly(initialw, x=~Ft,y=~Ft.1,z = ~w, color = ~"identity") %>%
+  add_markers() %>%
+  layout(scene = list(xaxis = list(title = 'Forage'),
+                      yaxis = list(title = 'Forage year minus 1'),
+                      zaxis = list(title = 'Weaning Success Rate')))
