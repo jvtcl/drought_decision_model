@@ -167,9 +167,9 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   
   assign(paste0("reactiveWinter", name), reactive({
     input[[paste0("sell", i-1)]]
-    if(values$myOuts[i, herd] == 0){
-      values$myOuts[i, cost.ins := 0]
-    }
+    # if(values$myOuts[i, herd] == 0){
+    #   values$myOuts[i, cost.ins := 0]
+    # }
     ID <<- input$user.ID
     values$myOuts[1, mTurkID := ID]
     
@@ -453,7 +453,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     userPay <- tryCatch(as.numeric(gsub("\\$", "", userPay)),
                         warning = function(war)return(0))
     if(!debugMode & purchaseInsurance == T){
-      req(userPay == round(indem[[i]]$producer_prem, 0), genericWrong)
+      req(userPay == round(values$myOuts[i, cost.ins], 0), genericWrong)
     }
     if(purchaseInsurance)rv$scrollPage <- T
     actionButton(paste0("year", name, "Start"), "Next")
