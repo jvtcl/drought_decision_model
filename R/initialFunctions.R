@@ -265,13 +265,13 @@ createResultsFrame <- function(pars = NULL, user.ID){
   "
   Function: createResultsFrame
   Description: This function creates a theoretical previous result from the year before the simulation begins
-    right now this assumes that there was no drought the year before the simulation and 
-    revenues were 0. These assumptions are likely unrealistic and can be adjusted to accomodate different
-    scenarios.
+  right now this assumes that there was no drought the year before the simulation and 
+  revenues were 0. These assumptions are likely unrealistic and can be adjusted to accomodate different
+  scenarios.
   
   Inputs:
   pars = state variables, simRuns in Master
-
+  
   Outputs:
   sim_results = data table to for filling in future results
   "
