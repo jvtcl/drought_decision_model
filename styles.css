@@ -42,7 +42,7 @@ background-color:rgb(255,255,255);
 }
 .btn:hover{
 border-color: rgb(255,255,255);
-background-color: rgb(255,255,255);
+background-color: rgb(169,169,169);
 color: rgb(255,255,255);
 font-weight: bold;
 }
