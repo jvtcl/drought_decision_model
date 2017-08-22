@@ -317,7 +317,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
             bsPopover(id="weanPercentage", 
                       title="Calf Production (%)", 
                       content = paste0("This value is the percentage of your cows that have given birth to a live calf and are successfully raising it. Calf production rates depend on the condition of the cows. If your herd is underfed, then the calf production rate will go down for the year in which they are underfed and it will go down even further the following year."), 
-                      placement = "top",
+                      placement = "left",
                       trigger = "hover",
                       options = list(container = "body")
             ),
