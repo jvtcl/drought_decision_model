@@ -13,6 +13,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   
   # Number of calves currently avaialble using normal wean success at start of year
   #   and then wean success based on available forage at end of year
+  ####Calves Available####
   assign(paste0("calvesAvailable", name), reactive({
     if(!is.null(input[[paste0("insCont", name)]])){  
       if(input[[paste0("insCont", name)]] >=1){
@@ -28,6 +29,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
       calvesAvailable <- values$myOuts[i, herd] * 
         AdjWeanSuccess(1, values$myOuts[i , total.forage], simRuns$normal.wn.succ)
     }
+    print(paste("Reactive Calves", calvesAvailable))
     return(calvesAvailable)
   }))
   
@@ -124,7 +126,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     # Output new forage that includes forage and adaptation feed
     totalForage <- forage.production + adaptPercent
   }))
-  
+  ####Herd Size####
   # Reactive to track herd size for each year should not change once
   #   each year has begun
   assign(paste0("herdSize", name), reactive({
@@ -142,6 +144,13 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
       herd_2 <- values$myOuts[i - 1, herd]
       wean_2 <- values$myOuts[i - 1, wn.succ]
       calvesSold <- values$myOuts[i - 1, calves.sold]
+      print(paste("YEAR", i))
+      print(paste("herdsize", herd))
+      print(paste("cows sold", cows))
+      print(paste("herd2", herd_2))
+      print(paste("wean_2", wean_2))
+      print(paste("calvesSold", calvesSold))
+      print(paste("herdCalcCalves", herd_2 * wean_2))
       shinyHerd(herd_1 = herd, cull_1 = cows, herd_2 = herd_2, 
                 calves_2 = herd_2 * wean_2 - calvesSold,
                 deathRate = simRuns$death.rate)
@@ -807,7 +816,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     # julyRain[, 7:12 := "?"]
   })
   
-  
+  ####CowPlot####
   output[[paste0("cowPlot", name)]] <- renderPlot({
     if(!is.null(input[[paste0("year", name, "Summer")]])){
       if(input[[paste0("year", name, "Summer")]] >=1){
@@ -1072,7 +1081,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     oldOuts[currentYear, cows.culled := cowSales]
     oldOuts[currentYear, precipWeight.change := sum(monthlyPrecipWeights)]
     oldOuts[pastYear, rangeHealth := ifelse((oldOuts[currentYear, precipWeight.change] * 100) > 100, 100, round(oldOuts[currentYear, precipWeight.change] * 100, 0))]
-    if(debugMode){
+    if(!debugMode){
       print(paste("forage production", whatIfForage(station.gauge, monthlyPrecipWeights, oldOuts[currentYear, yr], currentHerd, carryingCapacity, 10, 11, "normal")))
       print(paste("adapt expend", adaptExpend))
       print(paste("adapt inten", adaptInten))
