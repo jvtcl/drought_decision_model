@@ -36,5 +36,5 @@ death.rate,0.04
 carrying.cap,0.2
 forage.constant,10
 household.exp,60000
-mturk.conv,25000
+mturk.conv,50000
 assets.cash,90000
