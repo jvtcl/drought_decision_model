@@ -241,7 +241,7 @@ shinyServer(function(input, output, session) {
   #   in debug mode, saves results locally overwrites previously saved data
   observeEvent(input$saveState, {
       myDir <- "results"
-      saveData <<- reactiveValuesToList(input)
+      saveData <- reactiveValuesToList(input)
       saveData <- inputToDF(saveData)
 
       # Remove first row of variable names
@@ -263,7 +263,7 @@ shinyServer(function(input, output, session) {
     # }
     
     # Prepare inputs for saving
-    saveData <<- reactiveValuesToList(input)
+    saveData <- reactiveValuesToList(input)
     saveData <- inputToDF(saveData)
 
     # Pivot save data to horizontal
@@ -338,7 +338,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$savePracInputs, {
 
-    saveData <<- reactiveValuesToList(input)
+    saveData <- reactiveValuesToList(input)
     # save(saveData, file = "newSave.RData")
     saveData <- inputToDF(saveData)
     #saveData$names <- NULL
@@ -355,7 +355,7 @@ shinyServer(function(input, output, session) {
                        host = 'teamriskcowgame.cvkdgo9ryjxd.us-west-2.rds.amazonaws.com',
                        dbname = 'cowgame')
       print("Connection successful, saving data")
-      outputTable <<- resultsprac$myOuts[1:6]
+      outputTable <- resultsprac$myOuts[1:6]
       incProgress(1/3)
       dbWriteTable(conn = con,
                    name = 'practiceGameOutputs',

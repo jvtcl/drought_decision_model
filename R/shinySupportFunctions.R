@@ -19,7 +19,6 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
   herd <- myOuts[currentYear, herd]
   monthlyPrecipWeights <- station.gauge$monthlyPrecipWeights
   
-  myOuts[currentYear, mTurkID := ID]
   ## Calcualte available forage for normal, high, and low precip over remaining months
   forargeList <- vector("numeric", 3)
   if(currentYear == 1){
@@ -373,8 +372,8 @@ rangeHealth <- function(currentYear, myOuts){
   ## Round outputs for display
   forageList <- round(forageList, 2) * 100
   fullAdaptCost <- prettyNum(round(fullAdaptCost, -2), big.mark=",",scientific=FALSE)
-  expectCost <<- fullAdaptCost
-  precipexpec <<- forageList
+  expectCost <- fullAdaptCost
+  precipexpec <- forageList
 }
 
 

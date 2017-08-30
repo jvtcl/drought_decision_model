@@ -183,8 +183,8 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     # if(values$myOuts[i, herd] == 0){
     #   values$myOuts[i, cost.ins := 0]
     # }
-    ID <<- input$user.ID
-    values$myOuts[1, mTurkID := ID]
+    # ID <<- input$user.ID
+    # values$myOuts[1, mTurkID := ID]
     
     # Compute health info for sidebar display
     span(rangeHealth(i, values$myOuts), style = "color:white")
@@ -989,7 +989,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
                           totalForage = get(paste0("totalForage", name))(), calfSale = input[[paste0("calves", name, "Sale")]],
                           indem = indem[[i]], adaptExpend = input[[paste0("d", name, "adaptExpend")]], cowSales = input[[paste0("cow", name, "Sale")]], 
                           newHerd = get(paste0("herdSize", name))(), monthlyPrecipWeights = get(paste0("currentPrecipWeights", name))(), 
-                          currentYear = i, ID = ID, time = startTime, oldOuts = values$myOuts)
+                          currentYear = i, time = startTime, oldOuts = values$myOuts)
   })
   
   
@@ -1016,7 +1016,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
   #   return(rangeHealthList)
   # }
   
-  updateOuts <- function(wean, totalForage, calfSale, indem, adaptExpend, cowSales, newHerd, monthlyPrecipWeights, adaptInten, currentYear, ID, time, oldOuts){
+  updateOuts <- function(wean, totalForage, calfSale, indem, adaptExpend, cowSales, newHerd, monthlyPrecipWeights, adaptInten, currentYear, time, oldOuts){
     "
     Function: updateOuts
     Description: Function to update myOuts after a year of the simulation has been completed
@@ -1051,7 +1051,6 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     oldOuts[currentYear, rev.cow := cowSales * simRuns$p.cow]
     oldOuts[currentYear, simStartTime := startTime]
     oldOuts[currentYear, timeElapse := (Sys.time() - yearStartTime)]
-    oldOuts[currentYear, mTurkID := ID]
     oldOuts[currentYear, rev.ins := indem$indemnity]
     oldOuts[currentYear, rev.int := ifelse(oldOuts[pastYear, assets.cash] > 0, 
                                            oldOuts[pastYear, assets.cash] * simRuns$invst.int,
