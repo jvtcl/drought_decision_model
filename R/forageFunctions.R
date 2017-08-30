@@ -26,14 +26,14 @@ getForagePotential <- function(station.gauge, styear, herd, carryingCap,
   To assemble the weights:
   
   Use the product of deviation in precip from
-  long-term (1948-2015) average * zone weights
+  long-term (1948-2015) average * monthly precip weights
   for months occurring before & during the
   decision month.
   
   For months occurring after
   the decision month, use the product of group
   average deviation from the long-term
-  average * zone weight.
+  average * precip weight weight.
   
   This approach roughly approximates a 'best guess'
   scenario based on rain gauge observations -
@@ -43,22 +43,22 @@ getForagePotential <- function(station.gauge, styear, herd, carryingCap,
   **EVENTUALLY NEEDS INPUTS FOR
   STATE**
   
-  stgg: station gauge or grid cell precip record
+  precip: station gauge or grid cell precip record
   stzone: state zone
-  zonewt: weights for state zone
+  monthlyPrecipWeights: weights for state zone
   styear: year of interest
   decision: use 'decision under uncertainty' mode
   (default FALSE)
   
   "
   
-  ## Subset zone weights and prep index
+  ## Subset precip weight weights and prep index
   
-  yprecip <- station.gauge$stgg[Year %in% (styear-1):styear, ]  # monthly precip amounts for start year
-  zonewt <- station.gauge$zonewt
+  yprecip <- station.gauge$precip[Year %in% (styear-1):styear, ]  # monthly precip amounts for start year
+  monthlyPrecipWeights <- station.gauge$monthlyPrecipWeights
   yprecip <- cbind((yprecip[Year == styear - 1, c("NOV", "DEC")]),  # adding Nov and Dec from previous year to rainfall
                    (yprecip[Year == styear, -c("NOV", "DEC", "Year")]))
-  monthly.averages <- station.gauge$avg  # monthly average rainfall for each of the 12 months
+  monthly.averages <- station.gauge$avgPrecip  # monthly average rainfall for each of the 12 months
   yearAvg <- rbindlist(list(yprecip, monthly.averages), use.names = T)
   
   
@@ -71,7 +71,7 @@ getForagePotential <- function(station.gauge, styear, herd, carryingCap,
     #****Do we want to change the way year is done  here?
     #****This method gives very high forage potentials I might have messed something up
     
-    # cper <- station.gauge$stgg[1:which(Year == 2015),] # subset by period 1948-2015
+    # cper <- station.gauge$precip[1:which(Year == 2015),] # subset by period 1948-2015
     # cper_clust <- pamk(cper[, -1]) # Find optimal groups of years, k = 2-10
     # yy_group <- cper_clust[[1]]$clustering[which(cper$Year == styear)] # Group membership for target year
     # yy_ave <- colMeans(cper[which(cper_clust[[1]]$clustering == yy_group), ][, -1]) # Group mean vector
@@ -79,7 +79,7 @@ getForagePotential <- function(station.gauge, styear, herd, carryingCap,
     # yidx <- yy_ave/ave # Expected index values for year (group mean vector / long-term average)
     # Generate forage potential weights
     # not sure why the rows are subsetting as lists!
-    # foragewt <- unlist(c((zonewt * pidx), (zonewt * yidx)))
+    # foragewt <- unlist(c((monthlyPrecipWeights * pidx), (monthlyPrecipWeights * yidx)))
     
     # Replace Months forage in unknown months with the average
     
@@ -90,7 +90,7 @@ getForagePotential <- function(station.gauge, styear, herd, carryingCap,
   precip.index  <- yearAvg[1,] / yearAvg[2,] 
   
   #Compute Forage Weight Potentials
-  foragewt = zonewt * precip.index[, names(monthly.averages), with = F]
+  foragewt = monthlyPrecipWeights * precip.index[, names(monthly.averages), with = F]
     
   
   # Compute annual forage for zone
@@ -103,7 +103,7 @@ getForagePotential <- function(station.gauge, styear, herd, carryingCap,
   
 }
 
-whatIfForage <- function(station.gauge, zonewt, styear, herd, carryingCap,
+whatIfForage <- function(station.gauge, monthlyPrecipWeights, styear, herd, carryingCap,
                          currentMonth, farmYearStart = 11, expectedFuture){
   "
   Function: whatIfForage
@@ -111,7 +111,7 @@ whatIfForage <- function(station.gauge, zonewt, styear, herd, carryingCap,
   
   Inputs:
   station.gauge = list of station gauge info from simRuns/pars``
-  zonewt = zone weights adjusted based on previous decision and use
+  monthlyPrecipWeights = precip weight weights adjusted based on previous decision and use
   styear = year the simulation started
   herd = current size of herd
   carryingCap = carrying capacity of range in number of calf/cow paris
@@ -124,11 +124,11 @@ whatIfForage <- function(station.gauge, zonewt, styear, herd, carryingCap,
   forage.production = the predicted amount of forage available based on 
     scenario selection
   "
-  yprecip <- station.gauge$stgg[Year %in% (styear-1):styear, ]  # monthly precip amounts for start year
+  yprecip <- station.gauge$precip[Year %in% (styear-1):styear, ]  # monthly precip amounts for start year
   yprecip <- cbind((yprecip[Year == styear - 1, c("NOV", "DEC")]), 
                    (yprecip[Year == styear, -c("NOV", "DEC", "Year")]))
 
-  monthly.averages <- station.gauge$avg
+  monthly.averages <- station.gauge$avgPrecip
   yearAvg <- rbindlist(list(yprecip, monthly.averages), use.names = T)
   
   if(expectedFuture == "normal"){
@@ -145,7 +145,7 @@ whatIfForage <- function(station.gauge, zonewt, styear, herd, carryingCap,
   precip.index  <- yearAvg[1,] / yearAvg[2,]
 
   #Compute Forage Weight Potentials
-  foragewt = zonewt * precip.index[, names(monthly.averages), with = F]
+  foragewt = monthlyPrecipWeights * precip.index[, names(monthly.averages), with = F]
   
   
   # Compute annual forage potential weight for zone

@@ -22,11 +22,11 @@ p.calf.t0,1.45
 p.cow,850
 cow.cost,500
 purchase.insurance,1
-invst.int,0.0125
+invst.int,0.05
 cap.tax.rate,0.15
 t,5
 cull.num,0.1712
-loan.int,0.065
+loan.int,0.05
 op.cost.adj,-100
 herdless.op.cost,5000
 sell.cost,20
@@ -36,4 +36,5 @@ death.rate,0.04
 carrying.cap,0.2
 forage.constant,10
 household.exp,60000
-mturk.conv,200000
+mturk.conv,50000
+assets.cash,90000

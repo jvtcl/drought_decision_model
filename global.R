@@ -1,13 +1,10 @@
 #### Source Scripts ####
 source("R/load.R")
-source("R/shinySupportFunctions.R")
-source("R/simUI.R")
 source("R/forageFunctions.R")
 source("R/adaptationFunctions.R")
 source("R/costRevenueFunctions.R")
 source("R/initialFunctions.R")
 source("R/calfCowFunctions.R")
-source("R/assetFunctions.R")
 
 
 #### Javascript Setup ####
@@ -38,7 +35,7 @@ color: white !important;
 # Default location is CPER site
 station.gauge <- getStationGauge()
 
-monthlyNOAA_long <- station.gauge$stgg
+monthlyNOAA_long <- station.gauge$precip
 
 monthlyNOAA_long <- monthlyNOAA_long[!Year %in% c("2016"),]
 

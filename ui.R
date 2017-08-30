@@ -107,7 +107,7 @@ tabsetPanel(id = "mainPanels",
   
  ## Instruction panel
  tabPanel("Welcome",
-          fluidRow(
+          fluidRow(includeCSS("styles.css"),
            # textInput("code", "Enter Code to be Run"),
            # actionButton("runCode", "Run Code"),
            # textInput("insChange", "Enter True or False to use insurance or not"),
@@ -121,144 +121,21 @@ tabsetPanel(id = "mainPanels",
           )),
  
  tabPanel("Practice Simulation",
-          # CSS tags to control the button colors, .btn is the default state,
-          # focus is what happens after the button is clicked,
-          # hover is the response to a rollover
-          tags$head(tags$style(HTML("
-                                    .btn {
-                                    color:rgb(0, 0, 0);
-                                    text-align: left;
-                                    border-color: rgb(255,255,255);
-                                    background-color: rgb(43, 181, 52);}
-
-                                    .btn:focus{
-                                    background-color:rgb(255,255,255);
-                                    }
-
-
-                                    .btn:hover{
-                                    #border-color: rgb(255,255,255);
-                                    background-color: rgb(255,255,255)
-                                    color: rgb(255,255,255);
-                                    font-weight: bold;
-                                    }",
-                      # CSS formating for the rollover buttons
-                      ".quest{
-                      color:rgb(0, 0, 0);
-                      text-align: left;
-                      border-color: rgb(245,245,245);
-                      background-color: rgb(245, 245, 245);
-                      }
-                      .quest:hover{
-                      color:rgb(0, 0, 0);
-                      text-align: left;
-                      border-color: rgb(245,245,245);
-                      background-color: rgb(245, 245, 245);",
-
-                                  ".inTextTips{
-                      color:rgb(0, 0, 0);
-                      text-align: left;
-                      border-color: rgb(245,245,245);
-                      background-color: rgb(245, 245, 245);
-                                  }
-                      .inTextTips:hover{
-                      color:rgb(0, 0, 0);
-                      text-align: left;
-                      border-color: rgb(245,245,245);
-                      background-color: rgb(245, 245, 245);"
-                      ))),
-
-
-
-          fluidPage(
-
+          fluidPage(includeCSS("styles.css"),
             br(),
             br(),
             span((startTime <<- Sys.time()), style="color:white"),
             uiOutput("practiceOut"),
                     uiOutput(paste0("infoPane", "Prac"))
-
           )
-
-
  ),
  
  tabPanel("Ranch Simulation", 
-          # CSS tags to control the button colors, .btn is the default state, 
-          # focus is what happens after the button is clicked, 
-          # hover is the response to a rollover
-          tags$head(tags$style(HTML("
-                                .btn {
-                                    color:rgb(0, 0, 0);
-                                    text-align: left;
-                                    border-color: rgb(255,255,255);
-                                    background-color: rgb(43, 181, 52);}
-                                    
-                                .btn:focus{
-                                    background-color:rgb(255,255,255);
-                                    }
-                                    
-                                    
-                                .btn:hover{
-                                    #border-color: rgb(255,255,255);
-                                    background-color: rgb(255,255,255)
-                                    color: rgb(255,255,255);
-                                    font-weight: bold;
-                                }",
-                      # CSS formating for the rollover buttons
-                                ".quest{
-                                    color:rgb(0, 0, 0);
-                                    text-align: left;
-                                    border-color: rgb(245,245,245);
-                                    background-color: rgb(245, 245, 245);
-                                }
-                                  .quest:hover{
-                                    color:rgb(0, 0, 0);
-                                    text-align: left;
-                                    border-color: rgb(245,245,245);
-                                    background-color: rgb(245, 245, 245);",
-
-                                  ".inTextTips{
-                                    color:rgb(0, 0, 0);
-                                    text-align: left;
-                                    border-color: rgb(255,255,255);
-                                    background-color: rgb(255, 255, 255);
-                                }
-                                  .inTextTips:hover{
-                                    color:rgb(0, 0, 0);
-                                    text-align: left;
-                                    border-color: rgb(255,255,255);
-                                    background-color: rgb(255, 255, 255);"
-                      ))),
-          
-          
-          
-          fluidPage(
-
-            
+          fluidPage(includeCSS("styles.css"),
             uiOutput("pageOut"),
                     uiOutput("infoPaneMain")
-                    
           )
-          
-          
  )
- 
-  
-)
-
-
 )
 )
-
-
-
-
-
-
-
-
-
-
-
-
+)

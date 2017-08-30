@@ -417,26 +417,21 @@ w_{noadpt, t} =
 \begin{itemize}
 \item Function: \verb!AdjWeanSuccess!
 	\begin{itemize}
-	\item Description: Adjusts weaning success downward for the year of the drought and the following year based on a modified logistic equation. 
-	\item Inputs: \verb!stgg!, \verb!zonewt!, \verb!stzone!, \verb!styear!, \verb!noadpt!, \verb!normal.wn.succ!, \verb!t!
-	\item Output: \verb!wn.succ! (tx1 vector of weaning success in percentage of cows that will have calves that survive to be fully weaned)
+	\item Description: Adjusts weaning percentage downward for the year of the drought and the following year based on a modified logistic equation. 
+	\item Inputs: $\bar{wn}_t$ = \verb!normal.wn.succ!, $\lambda_t$ = \verb!totalForage!, $\lambda_{t-1}$ = \verb!totalForage1ya!.
+	\item Output: \verb!wn.succ! (parameter of weaning percentage, i.e. the percentage of cows that have living calves that will be weaned in the fall)
 	\item Assumptions: This equation is based on what I consider to be ``reasonable" estimates of weaning success based on forage potential. These fall roughly in line with body condition scores from the \textit{Nutrient Requirements of Beef Cattle}, but are only ballpark estimates.
 	\end{itemize}
 \end{itemize}
 
-If drought adaptation is not undertaken and $\alpha < 1$:
-\begin{align}
-wn_1 &= \bar{wn} * \frac{1}{1 + e^{2(-1 + \alpha_1)}} \\
-wn_2 &= \bar{wn} * \frac{1}{1 + e^{(-1 + \alpha_1)}} \\
-wn_3 &= \bar{wn} \\
-wn_4 &= \bar{wn} \\
-wn_5 &= \bar{wn} \\
-\end{align}
-
-Otherwise: 
+Where $\lambda_t$ is total forage in the year of weaning and $\lambda_{t-1}$ is total forage in the year prior to weaning,
 \begin{equation}
-wn_t = \bar{wn}
+wn_t \le \bar{wn} * \lambda_t^{1/4} * \lambda_{t-1}
 \end{equation}
+subject to the maximum weaning percentage \(wn_t = 0.88\). 
+
+
+
 
 
 

@@ -6,13 +6,24 @@ AdjWeanSuccess <- function(totalForage, totalForage1ya, normal.wn.succ) {
   #  of weaning success based on forage potential. We need to find a source
   #  that gives a better idea of the relationship
   
+  # wn.succ <- NULL
+  # if(totalForage < 1 & totalForage1ya >= 1){
+  #   wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage) * 2)))
+  # }else if(totalForage >= 1 & totalForage1ya < 1){
+  #   wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage1ya) * 1.2)))
+  # }else if(totalForage < 1 & totalForage1ya < 1){
+  #   wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage1ya) * 1.2)))  * (1 / (1 + exp(-(1 + totalForage)*2)))
+  # }else if(totalForage >= 1 & totalForage1ya >= 1){
+  #   wn.succ <- normal.wn.succ
+  # }
+  
   wn.succ <- NULL
   if(totalForage < 1 & totalForage1ya >= 1){
-    wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage) * 2)))
+    wn.succ <- normal.wn.succ * totalForage^.25
   }else if(totalForage >= 1 & totalForage1ya < 1){
-    wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage1ya) * 1.2)))
+    wn.succ <- normal.wn.succ * totalForage1ya
   }else if(totalForage < 1 & totalForage1ya < 1){
-    wn.succ <- normal.wn.succ * (1 / (1 + exp(-(1 + totalForage1ya) * 1.2)))  * (1 / (1 + exp(-(1 + totalForage)*2)))
+    wn.succ <- normal.wn.succ * totalForage1ya * totalForage^.25
   }else if(totalForage >= 1 & totalForage1ya >= 1){
     wn.succ <- normal.wn.succ
   }

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  29 JUN 2017 17:00
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  8 AUG 2017 18:45
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -197,21 +197,25 @@ LaTeX Font Info:    Redeclaring font encoding OMS on input line 635.
 LaTeX Info: Redefining \[ on input line 2739.
 LaTeX Info: Redefining \] on input line 2740.
 )
-(./drought_model_shiny.aux)
+(./drought_model_shiny.aux
+
+LaTeX Warning: Label `calfdroughtweight' multiply defined.
+
+)
 \openout1 = `drought_model_shiny.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -261,97 +265,97 @@ LaTeX Font Info:    ... okay on input line 16.
 \makeMPintoPDFobject=\count108
 \everyMPtoPDFconversion=\toks23
 )
-LaTeX Font Info:    Try loading font information for U+msa on input line 17.
+LaTeX Font Info:    Try loading font information for U+msa on input line 18.
  (/usr/local/texlive/2016/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 17.
+LaTeX Font Info:    Try loading font information for U+msb on input line 18.
 
 (/usr/local/texlive/2016/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-)
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 43.
+) [1
 
-(/usr/local/texlive/2016/texmf-dist/tex/latex/base/omscmr.fd
+{/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+Underfull \hbox (badness 10000) in paragraph at lines 49--50
+
+ []
+
+[2] [3]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 140.
+
+ (/usr/local/texlive/2016/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 43.
- [1
-
-{/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2]
-Overfull \hbox (46.85628pt too wide) in paragraph at lines 98--99
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 140.
+ [4]
+[5] [6] [7] [8] [9]
+Overfull \hbox (46.85628pt too wide) in paragraph at lines 321--322
 [][]\OT1/cmtt/m/n/10.95 CalcCowAssets \OT1/cmr/m/n/10.95 func-tion: Cal-cu-late
 s the cow as-sets for each year. Called in []\OT1/cmtt/m/n/10.95 initialFunctio
 ns\OT1/cmr/m/n/10.95 . 
  []
 
-[3]
-Underfull \hbox (badness 10000) in paragraph at lines 133--134
+
+Underfull \hbox (badness 10000) in paragraph at lines 340--341
 
  []
 
+[10] <weaningweight.pdf, id=50, 433.62pt x 289.08pt>
+File: weaningweight.pdf Graphic file (type pdf)
+ <use weaningweight.pdf>
+Package pdftex.def Info: weaningweight.pdf used on input line 397.
+(pdftex.def)             Requested size: 361.34999pt x 240.91116pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 135--136
-
+[11]
+Overfull \hbox (2.80988pt too wide) in paragraph at lines 416--417
+\OT1/cmr/m/n/10.95 R067BY002CO). We use the plant growth curve for West-ern Whe
+at-grass, Blue Grama,
  []
 
 
-Overfull \hbox (46.77255pt too wide) in paragraph at lines 137--139
-[]\OT1/cmr/m/n/10.95 Where []\OT1/cmtt/m/n/10.95 wn.succ \OT1/cmr/m/n/10.95 is 
-the wean-ing suc-cess go-ing into a given year (say, t = 5) and []\OT1/cmtt/m/n
-/10.95 forage.production
- []
 
+pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./CO_MLRAs.pdf): PDF inclusi
+on: found PDF version <1.6>, but at most version <1.5> allowed
+<CO_MLRAs.pdf, id=54, 794.97pt x 614.295pt>
+File: CO_MLRAs.pdf Graphic file (type pdf)
+ <use CO_MLRAs.pdf>
+Package pdftex.def Info: CO_MLRAs.pdf used on input line 421.
+(pdftex.def)             Requested size: 397.48402pt x 307.14674pt.
+ [12 <./weaningweight.pdf>] [13 <./CO_MLRAs.pdf>] [14] (./drought_model_shiny.a
+ux)
 
-Underfull \hbox (badness 10000) in paragraph at lines 140--141
+LaTeX Warning: There were multiply-defined labels.
 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 144--145
-
- []
-
-
-Overfull \hbox (554.26886pt too wide) in paragraph at lines 148--151
-[]\OT1/cmr/m/n/10.95 year 1 and 2 have low for-age, but re-cov-ers to 1 or more
- in year 3: []\OT1/cmtt/m/n/10.95 wn.succ_2 <-  wn.succ * (1 / (1 + exp(-(1 + f
-orage.production_1))))  * (1 / (1 + exp(-(1 + forage.production_2)*2)))
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 148--151
-
- []
-
-[4] (./drought_model_shiny.aux) ) 
+ ) 
 Here is how much of TeX's memory you used:
- 2884 strings out of 493014
- 39249 string characters out of 6133351
- 108488 words of memory out of 5000000
- 6385 multiletter control sequences out of 15000+600000
- 11866 words of font info for 45 fonts, out of 8000000 for 9000
+ 2919 strings out of 493014
+ 39696 string characters out of 6133351
+ 109598 words of memory out of 5000000
+ 6411 multiletter control sequences out of 15000+600000
+ 14056 words of font info for 54 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 42i,9n,26p,474b,241s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2016/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmr10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmr12.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmr17.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmr6.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmr8.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts
-/cm/cmsy10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmsy8.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmti10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmtt10.pfb>
-Output written on drought_model_shiny.pdf (4 pages, 152075 bytes).
+ 42i,10n,26p,943b,329s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
+></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
+</usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
+/usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></
+usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></us
+r/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/
+local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/lo
+cal/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loca
+l/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/
+texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/tex
+live/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texliv
+e/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2
+016/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/20
+16/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2016
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2016/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on drought_model_shiny.pdf (14 pages, 1271883 bytes).
 PDF statistics:
- 69 PDF objects out of 1000 (max. 8388607)
- 49 compressed objects within 1 object stream
+ 171 PDF objects out of 1000 (max. 8388607)
+ 116 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
- 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 11 words of extra memory for PDF output out of 10000 (max. 10000000)
 

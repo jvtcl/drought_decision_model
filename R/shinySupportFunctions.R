@@ -1,6 +1,6 @@
 ## Support functions for the shiny app
 
-getJulyInfo <- function(currentYear, name, startYear, myOuts){
+getJulyInfo <- function(currentYear, name, startYear, myOuts, CombinedForageandRain){
   
   "
   Function: getJulyInfo
@@ -17,22 +17,21 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
   ## Establish current state variables 
   myYear <- startYear + currentYear - 1
   herd <- myOuts[currentYear, herd]
-  zones <- station.gauge$zonewt
+  monthlyPrecipWeights <- station.gauge$monthlyPrecipWeights
   
-  myOuts[currentYear, mTurkID := ID]
   ## Calcualte available forage for normal, high, and low precip over remaining months
   forargeList <- vector("numeric", 3)
   if(currentYear == 1){
-    zones <- zones * (1 - (0)/simRuns$forage.constant)
+    monthlyPrecipWeights <- monthlyPrecipWeights * (1 - (0)/simRuns$forage.constant)
   }else{
-    zones <- myOuts[currentYear - 1, zone.change] * zones * 
+    monthlyPrecipWeights <- myOuts[currentYear - 1, precipWeight.change] * monthlyPrecipWeights * 
       (1 - (myOuts[currentYear - 1, Gt])/simRuns$forage.constant)
   }
 
   forageList <- vector("numeric", 3)
-  forageList[1] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "normal")
-  forageList[2] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "high")
-  forageList[3] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "low")
+  forageList[1] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "normal")
+  forageList[2] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "high")
+  forageList[3] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "low")
   
   ## Calculate cost of Adaptaiton
   adaptInten <- sapply(forageList, calculateAdaptationIntensity)
@@ -57,70 +56,16 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
   
   plotOutput(paste0("RangeHealthPlot", name))
   
-  #creating code for above/below/average rainfall
-  
-  #subsetting NOAA monthly precipitation values based on myYear - the current year the simulation is running on
-  SubsetNOAAyear <- subset(monthlyNOAA_long, Year == myYear)
-  
-  #renaming "variable" column to "Month", value to percentage of rainfall 
-  names(SubsetNOAAyear)[names(SubsetNOAAyear) == "variable"] <- "Month"
-  names(SubsetNOAAyear)[names(SubsetNOAAyear) == "value"] <- "RainfallP"
-  
-  #removing useless columns
-  SubsetNOAAyear[,c("AVG","index","grid","realValue","Year")] <- NULL
-
-  #Creating FOrage Potential dataframe
-  ForageMonthly <- data.frame(station.gauge$zonewt)
-  ForageMonthly <- setNames(cbind(rownames(ForageMonthly), ForageMonthly, row.names = NULL), 
-           c("Month", "FPvalue"))
-
-  #Combining Subsetted NOAA precipitation data with Forage Potential Values
-  CombinedForageandRain <- data.frame(SubsetNOAAyear, ForageMonthly)
-  
-  #Removing second column of months
-  CombinedForageandRain[,c("Month.1")] <- NULL
-  
-  #Creating Weighted Values for all months
-  CombinedForageandRain$`Weighted Values` <- CombinedForageandRain$RainfallP*CombinedForageandRain$FPvalue
-  
   #Finding the overall percentage of rainfall from January to June, November to December. Also Rounds it to a whole number. 
   ForageValue <- round(sum(CombinedForageandRain$`Weighted Values`[c(1:6,11,12)]) /
                          sum(CombinedForageandRain$FPvalue[c(1:6,11,12)]), digits = 0)
   
-  ForageValueAll <- round(sum(CombinedForageandRain$`Weighted Values`)/
-                         sum(CombinedForageandRain$FPvalue), digits = 0)
-  ForageValueAllp <<-if(ForageValueAll >= 110){
-    p(span("Your rainfall for this year has been above average at",style = "font-size:normal"),
-      span(ForageValueAll, style = "font-weight:bold;font-size:large;color:green"), "%", 
-      span("of the amount needed for optimal grass growth.", style = "font-size:normal"))  
-  } else if(ForageValueAll<110 & ForageValueAll>100){
-    p(span("Your rainfall for this year has been average at",style = "font-size:normal"), 
-      span(ForageValueAll, style = "font-weight:bold;font-size:large;color:green"), "%",
-      span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
-  } else {
-    p(span("Your rainfall for this year has been below average at", style = "font-size:normal"),
-      span(ForageValueAll, style = "font-weight:bold;font-size:large;color:red"), "%",
-      span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
-  }
 
     #do weighted average(value*forage potential )
 
 
   ## Create taglist showing all adpatation
-  tagList(
-    tags$head(tags$style(HTML(
-      # CSS formating for the rollover buttons
-      ".inTextTips{
-                      color:rgb(0, 0, 0);
-                      text-align: left;
-                      border-color: rgb(255,255,255);
-                      background-color: rgb(255, 255, 255);
-                                  }
-                      .inTextTips:hover{
-                      color:rgb(0, 0, 0);
-                      text-align: left;
-                      border-color: rgb(255,255,255);
-                      background-color: rgb(255, 255, 255);"))),
+  tagList(includeCSS("styles.css"),
     h3(paste0("Year ", currentYear, ": Summer Adaptation Investment Decision")),
     p("It is now the end of June, and you are over halfway through the growing season for forage on your rangeland. Good rainfall levels in July and August can further increase the forage for your herd. However, low rainfall levels will provide limited forage levels for your herd. It is your choice to decide how much hay to supplement in order to compensate the possible low amounts of grass on your range. Below indicates three options if you choose to invest in hay.",
       bsButton("Precipitation", label = "", icon = icon("question"), style = "info", class="inTextTips", size = "extra-small"),
@@ -129,19 +74,7 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
                 trigger = "hover", 
                 options = list(container = "body"))),
     #Pastes/shows if the rainfall was below, at, or above average.
-    if(ForageValue >= 110){
-      p(span("Your rainfall so far for this year has been above average at",style = "font-size:normal"),
-        span(ForageValue, style = "font-weight:bold;font-size:large;color:green"), "%", 
-        span("of the amount needed for optimal grass growth.", style = "font-size:normal"))  
-      } else if(ForageValue<110 & ForageValue>100){
-     p(span("Your rainfall so far for this year has been average at",style = "font-size:normal"), 
-       span(ForageValue, style = "font-weight:bold;font-size:large;color:green"), "%",
-       span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
-    } else {
-     p(span("Your rainfall so far has been below average at", style = "font-size:normal"),
-       span(ForageValue, style = "font-weight:bold;font-size:large;color:red"), "%",
-       span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
-    },
+    forageText(ForageValue),
     br(),
     plotOutput(paste0("rainGraph", name)),
 
@@ -157,8 +90,9 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
     # 
     # ,
     br(),
-    p("Remember that if you do not have enough money in the bank to cover the cost of hay you will automatically borrow at a 6.5% interest. Also, you do not need to specifically follow the recommended hay amounts - you can purchase any amount. "),
-    textInput(paste0("d", name, "adaptExpend"), "How much hay, if any, do you want to purchase for your herd?", width = "100%")
+    p("Remember that if you do not have enough money in the bank to cover the cost of hay you will automatically borrow at a 5% interest. Also, you do not need to specifically follow the recommended hay amounts - you can purchase any amount. "),
+    sliderInput(paste0("d", name, "adaptExpend"), "How much hay, if any, do you want to purchase for your herd?", 
+                min = 0, max = adaptMax, value = 0, step = 100, width = "100%")
   )
 }
 
@@ -184,6 +118,7 @@ getCowSell <- function(totalForage, wean, currentYear, name, myOuts){
   
   ## Calculate weaned Calves
   calvesAvailable <- round(herd * wean)
+  print(paste("Slider Calves Available", calvesAvailable))
   ## Calculate Standard Sales
   standardCowSale <- round(herd * simRuns$cull.num)
   standardCalfSale <- round(calvesAvailable * simRuns$calf.sell)
@@ -358,21 +293,21 @@ rangeHealth <- function(currentYear, myOuts){
   
   myYear <- startYear + currentYear - 1
   herd <- myOuts[currentYear, herd]
-  zones <- station.gauge$zonewt
+  monthlyPrecipWeights <- station.gauge$monthlyPrecipWeights
   
   ## Calculate available forage for normal, high, and low precip over remaining months
   forargeList <- vector("numeric", 3)
   if(currentYear == 1){
-    zones <- zones * (1 - (0)/simRuns$forage.constant)
+    monthlyPrecipWeights <- monthlyPrecipWeights * (1 - (0)/simRuns$forage.constant)
   }else{
-    zones <- myOuts[currentYear - 1, zone.change] * zones * 
+    monthlyPrecipWeights <- myOuts[currentYear - 1, precipWeight.change] * monthlyPrecipWeights * 
       (1 - (myOuts[currentYear - 1, Gt])/simRuns$forage.constant)
   }
   
   forageList <- vector("numeric", 3)
-  forageList[1] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "normal")
-  forageList[2] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "high")
-  forageList[3] <- whatIfForage(station.gauge, zones, myYear, herd, carryingCapacity, 7, 11, "low")
+  forageList[1] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "normal")
+  forageList[2] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "high")
+  forageList[3] <- whatIfForage(station.gauge, monthlyPrecipWeights, myYear, herd, carryingCapacity, 7, 11, "low")
   
   ## Calculate cost of Adaptaiton
   adaptInten <- sapply(forageList, calculateAdaptationIntensity)
@@ -384,10 +319,25 @@ rangeHealth <- function(currentYear, myOuts){
   ## Round outputs for display
   forageList <- round(forageList, 2) * 100
   fullAdaptCost <- prettyNum(round(fullAdaptCost, -2), big.mark=",",scientific=FALSE)
-  expectCost <<- fullAdaptCost
-  precipexpec <<- forageList
+  expectCost <- fullAdaptCost
+  precipexpec <- forageList
 }
 
+forageText <- function(forageValue){
+  if(forageValue >= 110){
+    p(span("Your rainfall for this year has been above average at",style = "font-size:normal"),
+      span(forageValue, style = "font-weight:bold;font-size:large;color:green"), "%", 
+      span("of the amount needed for optimal grass growth.", style = "font-size:normal"))  
+  } else if(forageValue < 110 & forageValue >= 100){
+    p(span("Your rainfall for this year has been average at",style = "font-size:normal"), 
+      span(forageValue, style = "font-weight:bold;font-size:large;color:green"), "%",
+      span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
+  } else {
+    p(span("Your rainfall for this year has been below average at", style = "font-size:normal"),
+      span(forageValue, style = "font-weight:bold;font-size:large;color:red"), "%",
+      span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
+  }
+}
 
 simPageOutput <- function(rv, name = ""){
   yearStartTime <<- Sys.time()
