@@ -1,6 +1,8 @@
 # CPER Data Analysis
 # Write to allow reuse of code for MTurk
 
+source("R/results_analysis/cperDataPrep.R")
+
 # Packages
 require(plm)
 require(lmtest) 
@@ -45,6 +47,8 @@ h1 <- lm(herd ~ insurance, data = finalHerd)
 summary(h1)
 
 ## Clustered errors method from http://www.richard-bluhm.com/clustered-ses-in-r-and-stata-2/
+p.df <- pdata.frame(r, index = c("mTurkID", "yr"), drop.index = F, row.names = T)
+
 # fit pooled OLS
 m1 <- lm(herd ~ insurance, data = r)
 # fit same model with plm (needed for clustering)
