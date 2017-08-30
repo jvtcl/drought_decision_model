@@ -98,7 +98,40 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     
     return(monthlyPrecipWeights)
   }))
-  
+
+  assign(paste0("forageRain", name), reactive({
+    
+    myYear <- startYear + i - 1
+    monthlyPrecipWeights <- station.gauge$monthlyPrecipWeights
+    #creating code for above/below/average rainfall
+
+    #subsetting NOAA monthly precipitation values based on myYear - the current year the simulation is running on
+    SubsetNOAAyear <- subset(monthlyNOAA_long, Year == myYear)
+
+    #renaming "variable" column to "Month", value to percentage of rainfall
+    names(SubsetNOAAyear)[names(SubsetNOAAyear) == "variable"] <- "Month"
+    names(SubsetNOAAyear)[names(SubsetNOAAyear) == "value"] <- "RainfallP"
+
+    #removing useless columns
+    SubsetNOAAyear[,c("AVG","index","grid","realValue","Year")] <- NULL
+
+    #Creating FOrage Potential dataframe
+    ForageMonthly <- data.frame(station.gauge$monthlyPrecipWeights)
+    ForageMonthly <- setNames(cbind(rownames(ForageMonthly), ForageMonthly, row.names = NULL),
+                              c("Month", "FPvalue"))
+
+    #Combining Subsetted NOAA precipitation data with Forage Potential Values
+    CombinedForageandRain <- data.frame(SubsetNOAAyear, ForageMonthly)
+
+    #Removing second column of months
+    CombinedForageandRain[,c("Month.1")] <- NULL
+
+    #Creating Weighted Values for all months
+    CombinedForageandRain$`Weighted Values` <- CombinedForageandRain$RainfallP*CombinedForageandRain$FPvalue
+
+    return(CombinedForageandRain)
+  }))
+
   # Reactive to track forage for each year
   assign(paste0("totalForage", name), reactive({
     
@@ -183,8 +216,6 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     # if(values$myOuts[i, herd] == 0){
     #   values$myOuts[i, cost.ins := 0]
     # }
-    # ID <<- input$user.ID
-    # values$myOuts[1, mTurkID := ID]
     
     # Compute health info for sidebar display
     span(rangeHealth(i, values$myOuts), style = "color:white")
@@ -465,7 +496,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     if(!is.null(input[[paste0("year", name, "Start")]])){  
       if(input[[paste0("year", name, "Start")]] >=1){
         tagList(
-          getJulyInfo(i, name, startYear, values$myOuts)
+          getJulyInfo(i, name, startYear, values$myOuts, get(paste0("forageRain", name))())
         )
       }
     }
@@ -487,6 +518,9 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
     if(!is.null(input[[paste0("year", name, "Summer")]])){
        if(input[[paste0("year", name, "Summer")]] >=1){
         currentIndem <- prettyNum(indem[[i]]$indemnity, digits = 0, big.mark=",",scientific=FALSE)
+        CombinedForageandRain <- get(paste0("forageRain", name))()
+        ForageValueAll <- round(sum(CombinedForageandRain$`Weighted Values`)/
+                                  sum(CombinedForageandRain$FPvalue), digits = 0)
         tagList(
           br(),
           br(),
@@ -496,7 +530,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
               p("You didn't get much rain this summer! In the graph below you can see how much
                 it has rained since you decided whether or not to purchase hay (July and August). 
                 The grey bars indicate old/past rainfall, while the dark blue bars indicate new rainfall"),
-              p(ForageValueAllp),
+              forageText(ForageValueAll),
               plotOutput(paste0("rainGraphSep", name)),
               if(purchaseInsurance == TRUE) {
                 p("Since you have rainfall insurance, 
@@ -529,7 +563,7 @@ simCreator <- function(input, output, session, i, rv, simLength, startYear, valu
               p("You got sufficient rain this summer, so your grass should be in good shape for your cattle! 
                 In the graph below you can see how much
                 it has rained since you decided whether or not to purchase hay (July and August)."),
-              p(ForageValueAllp),
+              forageText(ForageValueAll),
               plotOutput(paste0("rainGraphSep", name)),
               if(purchaseInsurance == TRUE) {
                 h4("Rainfall was close to or above normal levels during the growing season. This means that for the months most important for grass growth (May-August), rainfall was at least 90% of the average.")

@@ -1,6 +1,6 @@
 ## Support functions for the shiny app
 
-getJulyInfo <- function(currentYear, name, startYear, myOuts){
+getJulyInfo <- function(currentYear, name, startYear, myOuts, CombinedForageandRain){
   
   "
   Function: getJulyInfo
@@ -56,51 +56,10 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
   
   plotOutput(paste0("RangeHealthPlot", name))
   
-  #creating code for above/below/average rainfall
-  
-  #subsetting NOAA monthly precipitation values based on myYear - the current year the simulation is running on
-  SubsetNOAAyear <- subset(monthlyNOAA_long, Year == myYear)
-  
-  #renaming "variable" column to "Month", value to percentage of rainfall 
-  names(SubsetNOAAyear)[names(SubsetNOAAyear) == "variable"] <- "Month"
-  names(SubsetNOAAyear)[names(SubsetNOAAyear) == "value"] <- "RainfallP"
-  
-  #removing useless columns
-  SubsetNOAAyear[,c("AVG","index","grid","realValue","Year")] <- NULL
-
-  #Creating FOrage Potential dataframe
-  ForageMonthly <- data.frame(station.gauge$monthlyPrecipWeights)
-  ForageMonthly <- setNames(cbind(rownames(ForageMonthly), ForageMonthly, row.names = NULL), 
-           c("Month", "FPvalue"))
-
-  #Combining Subsetted NOAA precipitation data with Forage Potential Values
-  CombinedForageandRain <- data.frame(SubsetNOAAyear, ForageMonthly)
-  
-  #Removing second column of months
-  CombinedForageandRain[,c("Month.1")] <- NULL
-  
-  #Creating Weighted Values for all months
-  CombinedForageandRain$`Weighted Values` <- CombinedForageandRain$RainfallP*CombinedForageandRain$FPvalue
-  
   #Finding the overall percentage of rainfall from January to June, November to December. Also Rounds it to a whole number. 
   ForageValue <- round(sum(CombinedForageandRain$`Weighted Values`[c(1:6,11,12)]) /
                          sum(CombinedForageandRain$FPvalue[c(1:6,11,12)]), digits = 0)
   
-  ForageValueAll <- round(sum(CombinedForageandRain$`Weighted Values`)/
-                         sum(CombinedForageandRain$FPvalue), digits = 0)
-  ForageValueAllp <<-if(ForageValueAll >= 110){
-    p(span("Your rainfall for this year has been above average at",style = "font-size:normal"),
-      span(ForageValueAll, style = "font-weight:bold;font-size:large;color:green"), "%", 
-      span("of the amount needed for optimal grass growth.", style = "font-size:normal"))  
-  } else if(ForageValueAll<110 & ForageValueAll>100){
-    p(span("Your rainfall for this year has been average at",style = "font-size:normal"), 
-      span(ForageValueAll, style = "font-weight:bold;font-size:large;color:green"), "%",
-      span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
-  } else {
-    p(span("Your rainfall for this year has been below average at", style = "font-size:normal"),
-      span(ForageValueAll, style = "font-weight:bold;font-size:large;color:red"), "%",
-      span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
-  }
 
     #do weighted average(value*forage potential )
 
@@ -115,19 +74,7 @@ getJulyInfo <- function(currentYear, name, startYear, myOuts){
                 trigger = "hover", 
                 options = list(container = "body"))),
     #Pastes/shows if the rainfall was below, at, or above average.
-    if(ForageValue >= 110){
-      p(span("Your rainfall so far for this year has been above average at",style = "font-size:normal"),
-        span(ForageValue, style = "font-weight:bold;font-size:large;color:green"), "%", 
-        span("of the amount needed for optimal grass growth.", style = "font-size:normal"))  
-      } else if(ForageValue<110 & ForageValue>100){
-     p(span("Your rainfall so far for this year has been average at",style = "font-size:normal"), 
-       span(ForageValue, style = "font-weight:bold;font-size:large;color:green"), "%",
-       span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
-    } else {
-     p(span("Your rainfall so far has been below average at", style = "font-size:normal"),
-       span(ForageValue, style = "font-weight:bold;font-size:large;color:red"), "%",
-       span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
-    },
+    forageText(ForageValue),
     br(),
     plotOutput(paste0("rainGraph", name)),
 
@@ -376,6 +323,21 @@ rangeHealth <- function(currentYear, myOuts){
   precipexpec <- forageList
 }
 
+forageText <- function(forageValue){
+  if(forageValue >= 110){
+    p(span("Your rainfall for this year has been above average at",style = "font-size:normal"),
+      span(forageValue, style = "font-weight:bold;font-size:large;color:green"), "%", 
+      span("of the amount needed for optimal grass growth.", style = "font-size:normal"))  
+  } else if(forageValue < 110 & forageValue >= 100){
+    p(span("Your rainfall for this year has been average at",style = "font-size:normal"), 
+      span(forageValue, style = "font-weight:bold;font-size:large;color:green"), "%",
+      span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
+  } else {
+    p(span("Your rainfall for this year has been below average at", style = "font-size:normal"),
+      span(forageValue, style = "font-weight:bold;font-size:large;color:red"), "%",
+      span("of the amount needed for optimal grass growth.", style = "font-size:normal")) 
+  }
+}
 
 simPageOutput <- function(rv, name = ""){
   yearStartTime <<- Sys.time()

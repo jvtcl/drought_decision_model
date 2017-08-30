@@ -6,6 +6,7 @@ shinyServer(function(input, output, session) {
   # Set reactive values--------------------------------------------------------
   # Reactive values used to track when inputs/outputs are saved at the end of practice round
   #  and regular round. Once values become TRUE simulation contineus
+
   values <- reactiveValues("indem" = lapply(startYear:(startYear + simLength - 1), function(x){
     with(simRuns, shinyInsurance(yy = x, clv = clv, acres = acres,
                                  pfactor = pfactor, insPurchase  =  insp, tgrd = tgrd))}),
