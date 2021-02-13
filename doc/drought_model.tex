@@ -1,0 +1,999 @@
+\documentclass[11pt]{article}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\usepackage{amsmath}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\title{Mathematical representation of the drought decision model}
+\author{Trisha Shrum}
+%\date{}                                           % Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+%\section{}
+%\subsection{}
+
+\section{Overview}
+
+
+\section{Simulation Variables}
+\begin{itemize}
+\item Function: \verb!getConstantVars!
+	\begin{itemize}
+	\item Description: Reads in constant variables into a \verb!constvars! environment using the file \verb!data/constant_vars.csv!.
+	\item Inputs: None
+	\item Outputs: \verb!constvars! environment
+	\end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\item Function: \verb!getSimVars!
+	\begin{itemize}
+	\item Description: Creates an environment of variables for simulations. Note that this defaults to the excel model variables 
+	\item Inputs: \verb!random.starts! (TRUE: Choose random year to start simulations, then years following are temporally sequential, FALSE: 2002 is the start year), \verb!use.forage! (TRUE: Calf weights without adaptation follow forage potential predictions), \verb!autoSelect.insurance! (TRUE: Choose optimal insurance coverage periods based on forage potential, FALSE: Insure 50\% for 3rd interval and 50\% for 5th interval), \verb!clv! (Coverage level of insurance), \verb!acres! (Size of ranching operation. Modeled to only impact the insurance premium/payout), \verb!pfactor! (Productivity factor relative to other farms in the grid. Relevant only to insurance premium/payout), \verb!drought.adaptation.cost.factor! (Adjusts the impact of the low forage potential on costs of adaptation.)
+	\item Outputs: 
+	\end{itemize}
+\end{itemize}
+
+\begin{enumerate}
+\item Ensures baseline environments exists (\verb!constvars! and \verb!station.gauge!)
+\item Create simvars environment
+\item Set start year: Randomly pick a year from 1948 to 2010 if \verb!random.starts! is true (otherwise set at 2002)
+\item Get calf weaning weights. If use.forage=TRUE, all years of cattle weights are based on forage potential. If use.forage=FALSE, only the first year of cattle weights is based on forage potential, the rest are considered to be equal to average expected weaning weight.
+\item Assign drought action variables (\verb!drought.action!, \verb!calf.loss!, \verb!calf.wt.adj!, \verb!drought.adaptation.cost.factor!)
+\item Assign prices at weaning: $p_t = [1.31, 1.25, 1.25, 1.25, 1.25]$
+\item Assign insurance variables (from constvars). If \verb!random.coverage! = TRUE, then a random coverage level is chosen.
+\item Assign ranch size: if \verb!random.acres! = TRUE, then sample from a random normal distribution with  mean ranch size = 3000 (default) and sd = 500. 
+\item Assign productivity level: if \verb!random.productivity! = TRUE, then pick a random productivity factor between 0.6 and 1.5.
+\item Select insurance coverage: if \verb!autoSelect.Insurance! = TRUE, then insurance is allocated based on which intervals are most important for forage potential. (Using \verb!insAlloc! function)
+\item Assign drought start year and start months from \verb!constvars!.
+\end{enumerate}
+
+\section{Simulation Run}
+Function: \verb!sim_run!
+\begin{enumerate}
+\item Load \verb!insurance_base.RData!
+\item Calculate base sales and operating costs with average weaning weights (Functions: \verb!calculateExpSales!, \verb!CalculateBaseOpCosts!)
+\item Compute insurance premiums and indemnities (Functions: \verb!insMat!)
+\item Calculate base cow assets and capital taxes (Functions: \verb!CalcCowAssets, CalcCapSalePurch, CalcCapTaxes!)
+\item Calculate outputs without a drought (Function: \verb!OptionOutput!)
+\item Calculate forage potential vector (Function: \verb!getForagePotential!)
+\item Calculate drought action adjustment (Function: \verb!CalculateAdaptationIntensity!)
+\item Calculate days of action (Function: \verb!CalculateDaysActions!)
+\item Calculate expected sales revenues without adaptation, thus weaning weight is affected by forage potential (Function: \verb!calculateExpSales!)
+\item Calculate costs of adaptation for buying feed, renting pasture, and selling (and replacing) cows (Functions: \verb!CalculateFeedCost, CalculateRentPastCost, CalculateSellPrsCost!)
+\item Calculate the revenues under renting pasture and selling and replacing adaptation options. Revenues are unchanged from the base level for buying feed. (Functions: \verb!CalculateRentPastRevenue, CalculateSellPrsRev!)
+\item Calculate changing assets for sell and replace and selling without replacement options. (Functions: \verb!CalcCowAssets, CalcCapSalesPurch, CalcCapTaxes!)
+\item Calculate all outputs for each option. (Function: \verb!OptionOutput!)
+\item Pull all option outputs together into one data-frame for each simulation run.
+\end{enumerate}
+
+\section{Indices}
+\begin{itemize}
+\item Time is indexed by $t$, units in years. Variables with this index are allowed to vary by year.
+\item Insurance decision is indexed by $i$, where $i=1$ corresponds to the purchase of insurance and $i=0$
+\item Revenues and costs are indexed by $d$, the presence of drought and the drought adaptation measure where: 
+	\begin{itemize}
+	\item base (base costs),
+	\item nd (no drought, equivalent to base),
+	\item noadpt (drought, no adaptation), 
+	\item feed (drought, buy feed), 
+	\item rent (drought, rent pasture),
+	\item sell (drought, sell and replace)
+	\end{itemize}
+\end{itemize}
+
+
+\section{Data}
+\begin{itemize}
+\item Grid base data (what is this?): \verb!grid_base.RData!, called in \verb!load.R! script
+\item Insurance base data (what is this?): \verb!insurance_base.RData!, called in \verb!load.R! script
+\item NOAA Index (be more specific): \verb!noaaIndex.RData!, called in \verb!load.R! script
+\item Coops (what is this?): \verb!coops.RData!, called in \verb!load.R! script
+\item MLRA zone data (be more specific): \verb!mlra=readOGR("data","mlra_v42")!  called in \verb!load.R! script. \textit{I don't know what this function means}
+\end{itemize}
+
+\section{Precipitation and Forage}
+The model is currently set for a default to the Central Plans Experimental Range (CPER), but alternative locations for COOP sites in Colorado may also be used. We will expand the model to include more states.
+
+\begin{itemize}
+\item Function: \verb!getStationGauge!
+	\begin{itemize}
+	\item Description: Returns precipitation record and locational attributes for the target
+  location. Default is Central Plains Experimental Range (CPER) but alternative
+  locations at COOP sites across Colorado may be specified.
+  \item Inputs: \verb!target.loc! (target location. default set to \verb!CPER!, but COOP sites in Colorado can also be specified.
+  \item Outputs: \verb!zonewt! (Zone Weights, the weight given to precipitation in each month in terms of how much it contributes to annual forage), \verb!stzone! (Weights Zone, a single numeric value that designates the MLRA zone), \verb!stgg! (station or gauge precipitation data from 1948 to 2015), \verb!tgrid! (Target Grid Cell for reading in PRF index values at a given point in time).
+  \item Upon completion of the function \verb!getStationGauge!, a new sub-environment \verb!station.gauge! is generated, which contains \verb!zonewt!, \verb!stzone!, \verb!stgg!, and \verb!tgrd! based on the target location.
+	\end{itemize}
+\end{itemize}
+
+\textbf{If CPER (default):}
+\begin{enumerate}
+\item Assign \verb!stzone! a value of 3, corresponding to the zone where the CPER resides.
+\item Zone Weights  are read from the Excel model which is based on [xx] drought calculator state forage potential weights that we cannot reproduce. We are missing spatial reference information necessary to assign each target location to a state zone.
+\item Station Gauge, historical precipitation totals dating back to 1948, which are also read in from the Excel model. Precip totals are collected at CPER itself and do not rely on precip data from COOP sites.
+\item The target grid cell 25002 is assigned to the PRF grid cell (assuming this is the correct grid cell)
+\end{enumerate}
+
+\textbf{If custom location is specified:}
+\begin{enumerate}
+\item Loads \verb!data/coops.RData! which was generated by the \verb!coop_scraper.R! script.
+\item Zone Weights are based upon the Major Land Resource Area in which the COOP site resides. The MLRA forage potential is an average of plant growth curves calculated for a series of ecological site surveys (ESS) performed for that MLRA (using functions \verb!COOPinMRLA! and \verb!getMLRAWeights!). Our decision to use an average plant growth curve is a placeholder that could be replaced, for example, by a regression framework like the one used to calculate the state weights. Alternatively, we could contact the authors of the [xx] state weights and use these instead of MLRAs (since these are likely more accurate than the weights used here).)
+\item Weights Zone which in this case corresponds to the MLRA site within which the target COOP site resides.
+\item Station Gauge, which is read from the historical precipitation data \verb!precip! attached to the target COOP site list \verb!target.coop!.) \verb!tgrid! (Target Grid Cell which belongs to the list of COOP site attributes \verb!target.coop!. This variable is computed by converting the coordinates of the COOP site to a SpatialPoint object and finding the underlying PRF grid cell.
+\end{enumerate}
+
+\begin{itemize}
+\item Function: getForagePotential
+	\begin{itemize}
+	\item Description: Returns a weight representing annual forage potential for a given gridcell or station gauge's annual precipitation record. By default, it	computes the sum of weighted product of forage potential and long-term precipitation deviation from average for a given year relative to a grid cell or station gauge's period of record. To assemble the weights: It uses the product of deviation in precipitation from long-term (1948-2015) average and zone weights for months occurring before and during the decision month. For months occurring after the decision month, use the product of group average deviation from the long-term average and zone weight. This approach roughly approximates a 'best guess' scenario based on rain gauge observations - what should my precip for the remainder of the year look like given what I know by the decision month?
+	\item Inputs: \verb!stgg! (station gauge or grid cell precip record), \verb!stzone! (state zone), \verb!zonewt! (weights for state zone), \verb!styear! (year of interest), \verb!decision! (use 'decision under uncertainty' mode (default FALSE))
+	\item Options: A 'decision making under uncertainty' mode is also available (when 'decision' is set to TRUE). To build monthly weights, it generates a typology of years 1948-2015 (k-medoids) based on monthly precipitation values observed at the station.
+	\item Limitations: Need to build in inputs for state.
+	\end{itemize}
+\end{itemize}
+
+\begin{enumerate}
+\item Pull zone weights from \verb!zonewt! for station/grid of interest, \verb!stzone!
+\item Pull monthly precipitation totals for starting year from \verb!stgg!
+\item Create a monthly precipitation index by dividing monthly precipitation for the year and station/grid of interest by monthly average precipitation
+\item Under default mode: 
+	\begin{itemize}
+	\item Create monthly forage potential weights by multiplying zone weights for each month by the monthly precipitation index, then sum for an annual forage potential.
+	\end{itemize}
+\item Under decision-making under uncertainty mode:
+	\begin{itemize}
+	\item Return to this later or talk to Joe about this functionality. 
+	\end{itemize}
+\end{enumerate}
+
+
+\begin{itemize}
+\item Function: \verb!getMRLAWeights!
+	\begin{itemize}
+	\item Description: Computes forage potential weights using the mean of plant growth curves by MRLA for a specified state.
+	\item Data Source: https://esis.sc.egov.usda.gov/WelcomeFSG/pgFSGSelectFormat.aspx
+	\item Inputs: \verb!state.code! (two-letter state code for referencing
+  plant growth potential curves)
+  \item Outputs: \verb!forage_mlra! (Monthly precipitation forage weights)
+	\end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\item Function: \verb!COOP_in_MRLA!
+	\begin{itemize}
+	\item Description: Returns the MLRA in which a specified coop site is located.
+	\item Inputs: \verb!coop!
+	\item Output: MLRA (this needs further clarification)
+	\end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\item Function: \verb!forageWeights2Intervals!
+	\begin{itemize}
+	\item Description: Helper function for binning monthly forage weights into 2-month intervals matching the RMA insurance.
+	\item Inputs: \verb!fpwt!
+	\item Outputs: \verb!fpwt_iv!
+	\end{itemize}
+\end{itemize}
+
+\section{Profit and Assets Model}
+	\begin{equation}
+	\pi_t = R_{total,d,i,t} - C_{total,d,i,t}
+	\end{equation}
+	\begin{align}
+	R_{total,d,i,t} &= R_{d,t} +  R_{indem,i,t} + R_{int,t} \\
+	C_{total,d,i,t} &= C_{d,t} + C_{prem,i,t} + C_{int,t}
+	\end{align}
+
+\begin{equation}
+C_{total,d,i,t} = C^{cc}_{d,t} + C^{ins}_{i,t} + C^{int}_{d,t}
+\end{equation}	
+\begin{itemize}
+\item $C^{cc}_{d,t}$: Costs of cow-calf operation including the costs of drought measures, $d$.
+\item $C^{ins}_{i,t}$: Costs of insurance premium if it is purchased ($i=1$).
+\item $C^{int}_{d,t}$: Costs of borrowing if cash assets are negative. 
+\end{itemize}
+
+\begin{equation}
+R_{total,d,i,t} =R^{cc}_{d,t}+  R^{ins}_{i,t}+ R^{int}_{d,t}
+\end{equation}
+\begin{itemize}
+\item $R^{cc}_{d,t}$: Cow-calf revenues in year $t$ with drought adaptation measure $d$.
+\item $R^{ins}_{i,t}$: Revenues from indemnity payments if insurance is purchased ($i=1$).
+\item $R^{int}_{d,t}$: Interest revenue from cash assets.
+\end{itemize}
+
+\begin{itemize}
+\item Function: \verb!OptionOutput!
+	\begin{itemize}
+	\item Description: Takes in cost and revenue variables and creates a data-frame with all relevant outcome variables
+	\item Inputs: $t$ = \verb!t! (number of years), \verb!opt! (String to label adaptation option: "nodrght", "noadpt", etc.),  \verb!nodrought! (Optional value. Default is set to false. Set to true for no drought option), $R_{d,t}$ = \verb!rev.calf! (tx1 vector of revenue from actual calf sales in years 1 through t), $R_{oth,t}$ = \verb!rev.oth! (Optional tx1 vector of non-calf revenues (created to account for interest on sale of cows in year 1)), \verb!rma.ins! (tx3 matrix of insurance year, premium, and payouts), $C_{d,t}$ = \verb!cost.op! (tx1 vector of operating costs for years 1 through t, including any adaptation costs), $i_s$ = \verb!int.invst! (interest rate on positive cash assets (savings)), $i_l$ = \verb!int.loan! (interest rate on negative cash assets (loans), \verb!start.cash! (starting cash assets at t=0), \verb!assets.cow! (tx1 vector of the value of cow assets in each year)
+	\item  Outputs: dataframe of all major variables of interest. Each simulation run produces a $2*(t+1)*d$ row dataframe to account for each year, $t$, plus a start point where $t=0$ for each drought adaptation option with and without insurance : \verb!opt!, \verb!yr!, \verb!ins!, \verb!rev.calf!, \verb!rev.ins!, \verb!rev.int!, \verb!rev.tot!, \verb!cost.op!, \verb!cost.ins!, \verb!cost.int!, \verb!cost.tot!, \verb!profit!, \verb!taxes!, \verb!aftax.inc!, \verb!cap.sales!, \verb!cap.purch!, \verb!cap.taxes!, \verb!assets.cow!, \verb!assets.cash!, \verb!net.wrth!
+	\item Includes function calls to:
+	\item Function is called by: 
+	\end{itemize}
+\end{itemize}
+
+\begin{enumerate}
+\item Set up vectors for $t+1$ years for each adaptation option with and without insurance
+\item Pull insurance premiums and indemnities from \verb!rma.ins! vectors for insured outcomes
+\item Calculate total revenues without interest (calf sales, other revenue, indemnities):
+\begin{equation}
+R_{subtotal,d,i,t} = R_{d,t} + R_{oth,t} +  indem_{i,t}
+\end{equation}
+\item Bring outcome vectors into a single data-frame
+\item Looping over each year from $t=[1,t]$:
+	\begin{itemize}
+	\item Calculate interest revenues and costs based on cash assets:
+	\begin{equation}
+	R_{int,t} = 
+	\begin{cases}
+	A_{cash,t-1} * i_{s} & \text{if } A_{cash,t-1} > 0 \\
+	0 & \text{else}
+	\end{cases}
+	\end{equation}
+	\begin{equation}
+	C_{int,t} = 
+	\begin{cases}
+	A_{cash,t-1} * i_{l} & \text{if } A_{cash,t-1} < 0 \\
+	0 & \text{else}
+	\end{cases}
+	\end{equation}
+	\item Add interest revenue to other revenues:
+	\begin{equation}
+	R_{total,d,i,t} = R_{d,t} + R_{oth,t} +  indem_{i,t} + R_{int,t}
+	\end{equation}
+	\item Add interest cost to other costs:
+	\begin{equation}
+	C_{total,d,i,t} = C_{d,t} + premium_{i,t} + C_{int,t}
+	\end{equation}
+	\item Calculate profits:
+	\begin{equation}
+	\pi_t = R_{total,d,i,t} - C_{total,d,i,t}
+	\end{equation}
+	\item Calculate income taxes:
+	\begin{equation}
+	tax_t = 
+	\begin{cases}
+	\pi_t * (0.124+0.15+0.04) & \text{if } \pi_t > 0 \\
+	0 & \text{else}
+	\end{cases}
+	\end{equation}
+	\item Calculate after-tax income:
+	\begin{equation}
+	I_t = \pi_t - tax_t
+	\end{equation}
+	\item Calculate end of year cash assets:
+	\begin{equation}
+	A_{t} = A_{t-1} +  I_t + cap.sales - cap.purch - cap.taxes
+	\end{equation}
+	\end{itemize}
+\item  Organize output variables in dataframe
+\end{enumerate}
+
+\subsection{Revenues}
+Total Revenue Function:
+\begin{equation}
+R_{total,d,i,t} = R_{d,t} + R_{oth,t} +  indem_{i,t}
+\end{equation}
+
+Base sales: 
+\begin{itemize}
+\item Function: \verb!calculateExpSales! 
+\item Inputs: $h$ = \verb!herd! (herd size (number of cows, does not include calves)), \verb!calf.sell! (average percentage of calves sold), $\bar{w}$ = \verb!normal.wn.wt! (average calf weight at weaning under normal conditions (pounds)), $p_{t}$ = \verb!p.wn!(price of calves at weaning in year \(t\) (\$/pound))
+\end{itemize}
+
+\begin{equation} \label{baserevenues}
+R_{base, t} = \verb!calf.sell! * h * \bar{w} * p_t
+\end{equation}
+
+Inputs:
+\begin{itemize}
+\item $h$ = \verb!herd! (herd size (number of cows, does not include calves))
+\item \verb!calf.sell! (average percentage of calves sold), 
+\item $\bar{w}$ = \verb!normal.wn.wt! (average calf weight at weaning under normal conditions (pounds))
+\item $p_{t}$ = \verb!p.wn!(price of calves at weaning in year \(t\) (\$/pound))
+\end{itemize}
+
+\subsection{Costs}
+Total Cost Function:
+\begin{equation}
+C_{total,t} = C_{d, t} + iprem_{i,t} 
+\end{equation}
+
+
+\subsubsection{Base costs}
+\begin{itemize}
+\item Function: \verb!CalculateBaseOpCosts!
+	\begin{itemize}
+	\item Inputs: \(h\) \verb!herd! (number of cows, does not include calves), \(\gamma\) = \verb!cow.cost! (base operating costs (\$/cow))
+	\end{itemize}
+\end{itemize}
+
+\begin{equation} \label{basecost}
+C_{base,t} = \gamma h 
+\end{equation}
+
+
+\section{Drought Adaptation}
+Drought Adaptation Options:
+\begin{enumerate}
+\item Do Nothing
+\item Buy Feed
+\item Rent Pasture
+\item Sell Pairs and Replace
+\end{enumerate}
+
+\textbf{How much adaptation is needed?} 
+Depends on the length of adaptation action ($\lambda$ = \verb!days.act!) and the intensity of the drought ($\alpha$ = \verb!forage.potential!). Different drought adaptation actions are scaled slightly differently to account for fixed costs (e.g., trucking) and variables costs (e.g., days of pasture rental). 
+
+\begin{itemize}
+\item Function: \verb!CalculateDaysAction!
+	\begin{itemize}
+	\item Description: Calculate the number of days rancher pays for a drought adaptation action. 
+	\item Inputs: \verb!act.st.yr! (year the action starts), \verb!act.st.m! (month the action starts), \verb!act.end.yr! (year the action ends), \verb!act.end.m! (month the action ends)
+	\item Outputs: Number of days drought adaptation action takes place (days) (\verb!days.act!)
+	\item Assumptions: Assumes that the actions take place only in one year.
+	\item Limitation: Not equipped to handle drought adaptation in multiple years. Currently only works for the first year (bug identified).
+	\end{itemize}
+\end{itemize}
+
+\begin{equation} \label{days}
+\lambda = 30 * (\verb!act.end.m! - \verb!act.end.m!)
+\end{equation}
+
+\begin{itemize}
+\item Function: \verb!CalculateAdaptationIntensity!
+	\begin{itemize}
+	\item Description: Takes forage potential and an adaptation intensity factor to provide a scalar of drought action. If forage potential is above 1 (no drought), then this variable goes to 0 (no adaptation). 
+	\item Inputs: \(\psi\) = \verb!adpt.intensity.factor! (parameter that scales adaptation actions to reflect actual adaptation behavior. Currently defaults to 1 which assumes a one-to-one ratio of drops in forage percentage to need for forage replacement.), \(\alpha\) = \verb!forage.potential! (the percentage of average forage produced in a year based on rainfall. See forage potential functions.)
+	\item Output: \verb!intens.adj! (scales action to account for forage potential's deviation from the norm.)
+	\item Assumptions: The variable has a maximum of 1, which assumes that drought actions are parameterized at full forage replacement for the full herd.
+	\end{itemize}
+\end{itemize}
+
+\begin{equation} \label{intens}
+\beta = \verb!intens.adj!=
+\begin{cases}
+1-\alpha & \text{if}\ \alpha < 1 \\
+0 & \text{else}.
+\end{cases}
+\end{equation}
+
+
+\subsection{Drought Adaptation Option: Do Nothing}
+If ranchers do nothing when forage potential drops below 1, then calves do not gain as much weight and cows produce fewer calves. 
+
+\subsubsection{Costs}
+Costs are unchanged from base operating costs (eq \ref{basecost}):
+\begin{equation}
+C_{noadpt,t} = C_{base,t}
+\end{equation}
+
+
+\subsubsection{Revenues}
+When drought occurs and no adaption is undertaken, revenues are affected by calf sales through both reduced weaning weights and lower weaning success for the year of the drought and the year following.
+
+\begin{itemize}
+\item Function: \verb!calfWeanWeight!
+	\begin{itemize}
+	\item Description: Compute calf weights based on station/grid cell forage potential for a five-year period. Wean weights are computed for each of the five years as a summed product of the target location's forage potential weights and precipitation index by interval. 
+	\item Utilizes \verb!getForagePotential! and \verb!calfDroughtWeight! functions.
+	\item Inputs: $y_0$ = \verb!styr! (starting year of the five-year period)
+	\item Outputs: These are returned as a matrix of calf weights by year, \verb!calf_weights_ann!.
+	\end{itemize}
+\end{itemize}
+
+\begin{enumerate}
+\item Get forage weights for the years and zone with \verb!getForagePotential! function.
+\item Calculate calf drought weight according to eq \ref{calfdroughtweight} with \verb!calfDroughtWeight! function.
+\end{enumerate}
+
+
+
+\begin{itemize}
+\item Function: \verb!calfDroughtWeight!
+	\begin{itemize}
+	\item Description:
+	\item Inputs: $\bar{w}$ = \verb!normal.wn.wt! (average calf weight at weaning under normal conditions (pounds)), $w_{calf, 0}$ = \verb!calf.wt! ('current' weight of calves at decision point), $\alpha$ = \verb!forage.potential! (annual forage potential weight for zone)
+	\item Output: $w_{noadpt, t}$ = \verb!wn.wt! (calf weight at weaning under no drought adaptation in year t)
+	\end{itemize}
+\end{itemize}
+\begin{equation} \label{calfdroughtweight}
+w_{noadpt, t} = 
+\begin{cases}
+\bar{w} \left(1 - \frac{(1 - \alpha_t)}{3}\right) & \text{if } \alpha < 1 \\
+\bar{w} & \text{if } \alpha >= 1
+\end{cases}
+\end{equation}
+
+\begin{itemize}
+\item Function: \verb!AdjWeanSuccess!
+	\begin{itemize}
+	\item Description: Adjusts weaning percentage downward for the year of the drought and the following year based on a modified logistic equation. 
+	\item Inputs: $\bar{wn}_t$ = \verb!normal.wn.succ!, $\lambda_t$ = \verb!totalForage!, $\lambda_{t-1}$ = \verb!totalForage1ya!.
+	\item Output: \verb!wn.succ! (parameter of weaning percentage, i.e. the percentage of cows that have living calves that will be weaned in the fall)
+	\item Assumptions: This equation is based on what I consider to be ``reasonable" estimates of weaning success based on forage potential. These fall roughly in line with body condition scores from the \textit{Nutrient Requirements of Beef Cattle}, but are only ballpark estimates.
+	\end{itemize}
+\end{itemize}
+
+Where $\lambda_t$ is total forage in the year of weaning and $\lambda_{t-1}$ is total forage in the year prior to weaning,
+\begin{equation}
+wn_t \le \bar{wn} * \lambda_t^{1/4} * \lambda_{t-1}
+\end{equation}
+subject to the maximum weaning percentage \(wn_t = 0.88\). 
+
+
+
+
+
+
+\subsection{Drought Adaptation Option: Buy Feed}
+\subsubsection{Costs}
+In addition to base costs, $C_{base,t}$, with the buy feed adaptation option, we add the cost of buying feed according to the following function:
+\begin{itemize}
+\item Function: \verb!CalculateFeedCost!
+	\begin{itemize}
+	\item Description: Calculating the costs of purchasing additional feed
+	\item Inputs: $ration_{ray}$ = \verb!hay.ration! (hay ration assuming no grazing (pounds/head/day) \textbf{Source needed}), $p_{hay}$ = \verb!p.hay! (price of hay (\$/ton). user input), $ration_{oth}$ = \verb!oth.ration! (ration of non-hay feed (pounds/head/day) \textbf{Source needed}, $p_{oth}$ = \verb!p.oth! (price of other feed (\$/ton). User input. Does not come into play since the model assumes only feeding hay), $\beta$ = \verb!intens.adj! (drought intensity adjustment, eq. \ref{intens}), $\lambda$ = \verb!days.act! (days adaptation action (days), eq. \ref{days}), $h$ = \verb!herd! (size of herd (head of cows, does not include calves))
+	\item Outputs: \verb!cost.feed! (additional costs to feed the herd over the remainder of the season (\$/year))
+	\end{itemize}
+\end{itemize}
+
+\begin{equation}
+C_{feed,t} = \beta \lambda h \left(\frac{ration_{hay}}{2000} * p_{hay} + \frac{ration_{oth}}{2000} * p_{oth} \right)
+\end{equation}
+
+\begin{equation}
+C_{feed,t} = \beta \lambda h \left(\frac{ration_{hay}}{2000} * p_{hay} \right)
+\end{equation}
+Inputs:
+\begin{itemize}
+\item $ration_{ray}$ = \verb!hay.ration! (hay ration assuming no grazing (pounds/head/day) 
+\item $p_{hay}$ = \verb!p.hay! (price of hay (\$/ton)),
+\item $\beta$ = \verb!intens.adj! (drought intensity adjustment), 
+\item $\lambda$ = \verb!days.act! (days adaptation action (days)), 
+\item $h$ = \verb!herd! (size of herd (head of cows, does not include calves))
+\end{itemize}
+
+\subsubsection{Revenues}
+Revenues are unchanged from the base level. ( eq. \ref{baserevenues})
+\begin{equation}
+R_{feed,t} = R_{base,t}
+\end{equation}
+
+\subsection{Drought Adaptation: Rent Pasture}
+\subsubsection{Costs}
+In addition to base costs, we add the cost of renting pasture according to the following function:
+\begin{itemize}
+\item Function: \verb!CalculatePastureRentCost!
+	\begin{itemize}
+	\item Description: Calculates the costs of renting pasture and trucking pairs
+	\item Inputs: $m$ = \verb!n.miles! (distance to rented pasture (miles)), $p_{truck}$ = \verb!truck.cost! (trucking cost per loaded mile (\$/mile/truck)), $p_{rent}$ = \verb!past.rent! (price of renting pasture per animal unit month, where an animal unit is a cow/calf pair (\$/pair/month)), $\beta$ = \verb!intens.adj! (portion of herd moving to rented pasture), $\lambda$ = \verb!days.act! (days on rented pasture(days), $C_{fixed}$ = \verb!oth.cost! (all other non-rental, non-trucking costs (\$)), $w_{max}$ = \verb!max.wt! (maximum weight per truck (pounds)), $w_cow$ = \verb!cow.wt! (average cow weight (pounds)), $w_{calf}$ = \verb!calf.wt! (average 'current' weight of calves before trucking to rented pasture (pounds)), $h$ =\verb!herd! (size of herd (head of cows, does not include calves))
+	\item Output: \verb!cost.rentpast! (total costs of using renting pasture including transport costs on top of normal operating costs (\$/year))
+	\item Assumptions: Only cows are trucked back home. Fixed costs cover transaction costs (time, etc.) of arranging pasture rental.
+	\end{itemize}
+\end{itemize}
+
+Number of trucks needed to transport portion of herd (pairs) to rented pasture:
+\begin{equation}
+n_{to} = \lceil \beta h * \lceil w_{max} / (w_{cow} + w_{calf}) \rceil \rceil
+\end{equation}
+Number of trucks needed to transport portion of herd (cows only) back to home pasture:
+\begin{equation}
+n_{from} = \lceil \beta h * \lceil w_{max} / w_{cow} \rceil \rceil
+\end{equation}
+
+Cost of hiring trucks:
+\begin{equation}
+C_{trucks} =  m * p_{truck} (n_{to} + n_{from})
+\end{equation}
+
+Cost of renting pasture:
+\begin{equation}
+C_{past} = \beta \lambda h  \frac{p_{rent}}{30} 
+\end{equation}
+
+Total cost of ranching operation with drought adaptation through rental pasture:
+\begin{equation}
+C_{rent,t} = C_{trucks} + C_{past} + C_{fixed} + C_{base}
+\end{equation}
+
+$m$ = \verb!n.miles! (distance to rented pasture (miles)), $p_{truck}$ = \verb!truck.cost! (trucking cost per loaded mile (\$/mile/truck)), $p_{rent}$ = \verb!past.rent! (price of renting pasture per animal unit month, where an animal unit is a cow/calf pair (\$/pair/month)), $\beta$ = \verb!intens.adj! (portion of herd moving to rented pasture), $\lambda$ = \verb!days.act! (days on rented pasture(days), $C_{fixed}$ = \verb!oth.cost! (all other non-rental, non-trucking costs (\$)), $w_{max}$ = \verb!max.wt! (maximum weight per truck (pounds)), $w_cow$ = \verb!cow.wt! (average cow weight (pounds)), $w_{calf}$ = \verb!calf.wt! (average 'current' weight of calves before trucking to rented pasture (pounds)), $h$ =\verb!herd! (size of herd (head of cows, does not include calves))
+
+\subsubsection{Revenues}
+Due to losses during the stress of trucking cows and calves, the revenues are lower than normal.
+
+\begin{itemize}
+\item Function: \verb!CalculateRentPastRevenue!
+	\begin{itemize}
+	\item Description: Calculates calf sale revenues after trucking pairs to rented pastures
+	\item Inputs: \verb!calf.loss! (additional calf deaths due to transport stress (head of calves)), \verb!calf.wt.adj! (adjustment for calf weaning weights (\%)), \verb!calf.sell! (average percentage of calves sold (\%)), $w_t$ = \verb!wn.wt! (average weight at weaning (pounds)), $p_t$ = \verb!p.wn! (expected sale price of calves (\$/pound)), \verb!herd! (size of herd (head of cows, does not include calves)), $\beta$ = \verb!intens.adj! (portion of herd moving to rented pasture)
+  \item Outputs: \verb!rev.rentpast! (change in revenue due to mortality and weight loss from trucking to rented pasture)
+	\end{itemize}
+\end{itemize}	 
+
+Number of calves sold after accounting for calf mortality in transport:
+\begin{equation} 
+calves_{rent} = h * \beta * \verb!calf.sell! - \verb!calf.loss!
+\end{equation}
+\begin{equation}
+calves_{home} = h * (1-\beta) * \verb!calf.sell!
+\end{equation}
+  
+Selling weight after accounting for weight loss due to transport stress
+\begin{equation}
+wt_{rent} = wt_{normal} * (1 + \verb!calf.wt.adj!)
+\end{equation}
+  
+Expected calf sale revenues
+\begin{equation}
+R_{rent} = p_{wn} ( calves_{rent} * wt_{rent} + calves_{home} * wt_{normal})
+\end{equation} 
+
+\subsection{Drought Adaptation: Sell and Replace}
+
+\subsubsection{Costs}
+When a rancher sells the herd, the operating costs of the ranch drops in the year the herd is sold, includes only basic fixed operating costs when there is no herd, and then goes back to normal base operating costs.
+
+\begin{itemize}
+\item Function: CalculateSellPrsCost
+	\begin{itemize}
+	\item Description: Calculates the operating costs to sell pairs in year 1 and replacing cows in year 3
+	\item Inputs: \verb!op.cost.adj! (change in operating costs in year 1 per cow after selling herd (\$/cow/year)), \verb!sell.cost! (selling cost per cow (\$/cow)), $h$ = \verb!herd! (size of herd (head of cows, does not include calves)), \verb!base.cost! (baseline annual cost of operating ranch with full herd (\$/year)), \verb!fixed.op.cost! (fixed operating costs for a year without a herd (\$/year))
+	\item Outputs: \verb!cost.sellprs! (5x1 vector of changes in operating costs for years 1 through 5 from selling pairs in year 1 and replacing them at the end of year 3)
+  	\item Assumptions: 
+  		\begin{itemize}
+  		\item It is assumed that cows are replaced on last day of the second year after they are sold. For example, cows sold in 2011 are replaced on 12/31/2013. 
+  		\item The adjustment in operating costs does not depend on when the herd is sold. 
+  		\item Selling costs are additional to normal selling costs. 
+  		\item No additional purchasing costs are added when the herd is restocked.
+  		\item The herd size is the same before and after selling the herd.
+  		\item Entire herd is sold.
+  		\end{itemize}
+	\end{itemize}
+\end{itemize}
+
+\begin{align*}
+C_{sell, 1} &= C_{base} + h (op.cost.adj + sell.cost) \\
+C_{sell, 2} &= C_{herdless} \\
+C_{sell, 3} &= C_{herdless} \\
+C_{sell, 4} &= C_{base} \\
+C_{sell, 5} &= C_{base}
+\end{align*}
+
+\subsubsection{Revenues}
+\begin{itemize}
+\item   Function: CalculateSellPrsRev
+	\begin{itemize}
+	\item Description: Calculates calf sales revenues due to selling pairs and replacing cows for years 1 through 3
+  	\item Inputs: \verb!base.sales! (calf sales in a normal year (\$/year)), $p_{calf, 0}$ = \verb!p.wn.t0! (current sale price calves (\$/pound), $h$ = \verb!herd! (size of herd (head of cows, does not include calves)), \verb!wn.succ! (average percentage of cows that successfully wean calves (\%)), $w_{calf, 0}$ = \verb!calf.wt! (average 'current' weight of calves (pounds))
+  	\item Outputs: \verb!rev.sellprs! (5x1 vector of calf revenues for years 1 through 5)
+  	\item Assumptions: It is assumed that cows are replaced on last day of the second year after they are sold. 
+  For example, cows sold in 2011 are replaced on 12/31/2013. The herd size is the same before and after selling the herd. Entire herd is sold.
+	\end{itemize}
+\end{itemize}
+\begin{align*}
+R_{sell, 1} &= \beta h * wn.succ * w_{calf, 0} * p_{calf, 0} \\
+R_{sell, 2} &= 0 \\
+R_{sell, 3} &= 0 \\
+R_{sell, 4} &= R_{base, 4} \\
+R_{sell, 5} &= R_{base, 5}
+\end{align*}
+
+\section{Assets and Net Worth}
+Calculating assets and net worth.
+
+\begin{itemize}
+\item Function: \verb!CalcCowAssets!
+	\begin{itemize}
+	\item Description: Calculates the cow assets for each year.
+	\item Inputs: \verb!herd!, $p_{cow}$ = \verb!p.cow!, \verb!sell.year! (year the herd is sold. single numeric value. default is year 1.), \verb!replace.year! (year the herd is replaced. single numeric value. default is year 3).
+	\item Output: $A_{cow}$ = \verb!cow.assets! (6x1 vector of cow assets for each year, including t=0)
+	\end{itemize}
+\end{itemize}
+
+If herd is never sold:
+\begin{equation}
+A_{cow,t} = h * p_{cow}
+\end{equation}
+
+If herd is sold and replaced:
+\begin{equation}
+A_{cow,t} =  
+\begin{cases}
+h * p_{cow}, & \text{if  } t < t_{sell},  t > t_{replace}, \text{or } t_{sell} = \varnothing \\
+0, & \text{if  } t_{sell} \le t < t_{replace} \\
+\end{cases}
+\end{equation}
+
+\begin{itemize}
+\item Function: \verb!CalcCapSalesPurch!
+	\begin{itemize}
+	\item Description: Calculates vectors of capital sales and capital purchases from changes in cow assets and normal culling rates. 
+  	\item Inputs: \verb!assets.cow! (tx1 vector of the value of cow assets each year)
+  	\item Outputs: $S_t$ = \verb!cap.sales! (tx1 vector of capital sales for each year), $P_t$ = \verb!cap.purch! (tx1 vector of capital purchases for each year)
+  	\item Assumptions: Assumes sale/purchase of cows is only capital sales/purchase. Assumes normal culling is counted as a capital sales (\textit{Is this correct?}.
+	\end{itemize}
+\end{itemize}
+
+\begin{equation}
+S_t =
+\begin{cases}
+A_{t-1} - A_{t}, & \text{if  } A_t < A_{t-1} \\
+n_{cull} * p_{cow}, & \text{if } A_t \geq A_{t-1} \text{ and } A_{t-1} \ne 0 \\
+0, & \text{if } A_t \ge A_{t-1} \text{ and } A_{t-1} = 0
+\end{cases} 
+\end{equation}
+
+\begin{equation}
+P_t =
+\begin{cases}
+A_t - A_{t-1}, & \text{if } A_t > A_{t-1} \\
+0, & \text{if } A_t \le A_{t-1}
+\end{cases} 
+\end{equation}
+
+\begin{itemize}
+\item Function: \verb!CalcCapTaxes!
+	\begin{itemize}
+	\item Description: Calculates capital taxes on herd sales. Tax treatment is different depending on whether herd is sold and replaced by the end of the third year or if the herd is sold and not replaced during a drought emergency.
+	\item Inputs: \verb!cap.sales!, \verb!cap.purch!, $r_{cap}$ = \verb!cap.tax.rate!, \verb!drought.emrg! (binary variable to indicate whether drought emergency was in place when the herd was sold currently set to a default of 1. This only matters if the herd is sold and not replaced.)
+	\item Outputs: $\tau$ = \verb!cap.taxes! (5x1 vector of capital taxes)
+	\item Assumptions: Assumes that the entire herd is sold and replaced at the same rate. Not sure how the tax code treats changes in prices. This abstracts away from that. The price dynamics could matter here, but for now we are leaving them out.
+	\end{itemize}
+\end{itemize}
+
+Without a federally declared drought disaster:
+\begin{equation}
+\tau_t = 
+\begin{cases}
+0, & \text{if cows are replaced within two years}  \\
+S_t * r_{tax}, & \text{if cows are not replaced within two years}
+\end{cases}
+\end{equation}
+
+With a federally declared drought disaster, capital taxes are delayed one year:
+\begin{align}
+\tau_t &= 0 \\
+\tau_{t+1} &= S_t * r_{tax}
+\end{align}
+
+
+
+\section{Insurance Model}
+
+\begin{itemize}	
+\item Function: \verb!dcInfo! 
+	\begin{itemize}
+	\item Description: Extracts drought calculator information from a grid cell
+	\item Inputs: \verb!dc! (drought calculator output), \verb!tgrd! (target grid cell id)
+	\item Outputs: \verb!dcinf! (be more specific)
+	\end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\item Function: \verb!droughtCalculator!
+	\begin{itemize}
+	\item Description: Emulates RMA's precipitation-based insurance index in raster. NOTE
+  that premium/indemnity estimates will be slightly off those of RMA because our index values 'intervalNOAA' slightly disagree.
+	\item Inputs: \verb!yy! (year of interest), \verb!clv! (RMA coverage level. Accepted values are 0.7, 0.75, 0.8, 0.85, 0.9), \verb!acres! (insured acres), \verb!pfactor! (productivity factor of grazing land), \verb!insPurchase! (a m? x n? matrix of intervals from 1-11 for which insurance is purchased. For example, purchases for the April-May and May-June intervals at 50\% protection each would be entered as `rbind(c(3,0.5),c(5,0.5))` Consecutive intervals are not allowed.)
+	\item Outputs (list): \verb!prem_noSbdy! (total premium with subsidy), \verb!prem_wSbdy! (total premium without subsidy), \verb!prodPrem! (premium paid by producer), \verb!indemrate! (indemnity rate (stack, by month)), \verb!indemnity! (indemnity (stack, by month)), \verb!indemtot! (total indemnity)  
+	\item Requirements: Insurance allocation for consecutive intervals is not permitted. Insurance must be allocated for at least two intervals. Insurance allocation intervals must range from 1-11. Insurance allocation may not exceed 60\% per interval. Insurance allocation must sum to 100\%.
+	\end{itemize}
+\end{itemize}
+
+\begin{enumerate}
+\item Get appropriate subsidy rate based on coverage level from \verb!covsub! matrix: 
+Coverage Subsidies (\verb!covsub!):
+\begin{center}
+\begin{tabular}{cc}
+\hline
+Coverage Level & Subsidy Rate \\
+70\% & 59\% \\
+75\% & 59\% \\
+80\% & 55\% \\
+85\% & 55\% \\
+90\% & 51\% \\
+\hline
+\end{tabular}
+\end{center}
+\begin{equation}
+sbdy = 
+\begin{cases}
+0.59, & \text{if}\ \verb!clv! \le 0.75 \\
+0.55, & \text{if}\ 0.75 < \verb!clv! < 0.90 \\
+0.51, & \text{if}\ \verb!clv! \ge 0.90 
+\end{cases}
+\end{equation}
+
+\item Put insurance purchase values for each interval (\verb!insPurchase!) into an insurance purchase vector (1x11). 
+\item Calculate the policy rate:
+\begin{equation}
+\verb!plrt! = \verb!clv! * \verb!acres! * \verb!pfactor! * \verb!basePrice!
+\end{equation}
+	\begin{itemize}
+	\item \#\#\#\# Where does \verb!basePrice! and \verb!covsub! come from in the code? What is the policy rate?
+	\end{itemize}
+\item Generate inputs to compute premiums
+\item Compute premiums
+\item Round premiums to match RMA (as closely as possible)
+\item Compute indemnities
+\item Prepare outputs into \verb!outList!
+\end{enumerate}
+
+
+
+\begin{itemize}
+\item Function: \verb!insMat!
+	\begin{itemize}
+	\item Description: Generates a matrix representing insurance premium payments and indemnities for a specified grid cell over a five-year interval. 
+	\item Inputs: \verb!tgrd! (target grid cell), \verb!yyr! (starting year), \verb!clv! (coverage level), \verb!acres! (insured acres), \verb!pfactor! (land productivity factor), \verb!insPurchase! (a matrix representing insurance allocation to two-month intervals, with rows written in the format [mm,amt])
+	\item Outputs: a 5 x n? matrix with insurance premium payments (column ?) and indemnities (column ?) for a specified grid cell over a five-year interval. 
+	\end{itemize}
+\end{itemize}
+	
+
+
+
+
+
+
+Insurance Purchase (\verb!insPurchase!, \verb!insp!):
+
+Default:Excel model defaults
+\verb!ins! = 
+\( \begin{bmatrix}
+3 & 0.5 \\
+5 & 0.5 \\
+\end{bmatrix}\) 
+
+Option "autoSelect.insurance":
+\begin{itemize}
+\item Function: \verb!insAlloc!
+	\begin{itemize}
+	\item Description: Automates range insurance allocation to two-month RMA intervals using a grid cell/COOP site's forage potential weights. Returns a matrix formatted as the `insPurchase` input for function `insMat`. Allocation for chosen two-month intervals is roughly proportional to the relative value of each interval's forage potential weight. Adjustments to allocation percentages are automatically made if a selection is invalid for one or more intervals, either too high ($>$60\%) or too low (10\%). User-specified min/max allocation percentages falling within this range may also be substituted by setting the `max.alloc` and `min.alloc` arguments.
+	\item Inputs: \verb!fpwt! (A vector of monthly forage potential weights for the target site. Monthly intervals are averaged to two-month intervals to match RMA insurance selections.), \verb!niv! (number of two-month intervals to insure), \verb!by.rank! (if TRUE (default), ranks forage potential weights by interval in descending order and selects the `niv` most highly ranked non-consecutive intervals to insure. If FALSE, selects the combination of `niv` non-consecutive two-month intervals with the highest average forage potential weights.), \verb!max.alloc!  (maximum interval allocation, 0.6), \verb!min.alloc! (minimum interval allocation, 0.1).
+	\item Outputs: 
+	\end{itemize}
+\end{itemize}
+
+
+
+
+
+\section{Additional Functions}
+\begin{itemize}
+\item Function: \verb!gridToRaster!
+	\begin{itemize}
+	\item Description: Simple wrapper to turn a matrix into a raster using a template
+    \item Inputs: \verb!grid! (data in matrix format), \verb!rasterTemplate! (template to use in rasterization of the matrix)
+    \item Outputs: Raster of grid data
+	\end{itemize}
+\item Function: \verb!dataToRast!
+	\begin{itemize}
+	\item Description: Convert a data.frame/data.table field to raster.
+	\item Inputs: \verb!inData! (input data frame/table), \verb!target.var! (character representing fields to map to raster grid, default set to NULL)
+	\item Outputs: \verb!dataRast!
+	\end{itemize}
+\item Function: \verb!:=!
+	\begin{itemize}
+	\item Description: Magical function that allows you to return more than one variable from other functions. Code from http://stackoverflow.com/questions/1826519/function-returning-more-than-one-value
+	\end{itemize}
+\end{itemize}
+
+
+
+
+
+
+\section{Dynamic Forage}
+Forage production per pair, $F_t$, is the dot product of forage potential, $\alpha_t$, and the monthly rainfall, $\rho_t$, divided by the ratio of acres per cow and carrying capacity. $\alpha_t$ and $\rho_t$ are vectors with a length of twelve representing each month of the year. 
+
+In an average rainfall year with undegraded forage potential, if the herd size is equal to the carrying capacity, then $F_t = 1$. As rainfall or forage potential increases (decreases), $F_t$ increases (decreases). As herd size increases (decreases), $F_t$ decreases (increases). 
+
+\begin{equation}
+F_t = \frac{\alpha_t \cdot \rho_t}{\%K}
+\end{equation}
+\begin{equation}
+\%K = \frac{\frac{l}{\theta_t}}{K}
+\end{equation}
+where $l$ is the number of acres grazed, $\theta_t$ is the size of the herd (head of cows, not including calves or yearlings), and $K$ is defined as the sustainable carrying capacity of the ranch in an average year (acres/cow).
+
+When the herd is at its carrying capacity ($l/\theta_t = K)$, $\%K$ = 1. When the carrying capacity is exceeded, $\%K > 1$, leading to a reduction of forage per pair. In other words, at any given level of forage potential and rainfall, the forage per pair is smaller when the herd increases. Likewise, when $l / \theta_t < K$, the forage per pair increases (holding forage and rainfall constant). 
+
+Perfect adaptation, $\tilde{a}_t$, is defined as the gap between full forage production per pair ($F_t = 1$) and actual forage production per pair. It is a unitless measure that is best interpreted as a percentage.
+\begin{equation}
+\tilde{a}_t \equiv 1 - F_t
+\end{equation}
+
+Actual adaptation, $a_t$, is defined as the portion of the gap between full forage production per pair and actual forage production per pair that is filled with drought adaptation measures, such as the purchase of additional feed. We define this as the ratio of expenditures on adaptation and cost of perfect adaptation scaled by the perfect adaptation, $\tilde{a}_t$. We assume that the costs of adaptation are linear. 
+\begin{equation}
+a_t \equiv \frac{\text{Expenditures on adaptation}}{C(\tilde{a}_t)} \tilde{a}_t
+\end{equation}
+
+Grazing pressure, $G_t$, depends on the forage production, the herd size, and the level of investment in adaptation. 
+At a sustainable equilibrium, $G_t = 0$. 
+We define this equilibrium as follows: when forage production per pair plus drought adaptation measures are equal to 1, then there is zero grazing pressure. As forage production per pair plus drought adaptation measures fall below 1, then there is positive grazing pressure leading to a degradation of forage potential. As forage production per pair plus drought adaptation measures rise above 1, then there is negative grazing pressure leading to a recovery of forage potential if it is not already at full health ($\sum \alpha_t = 1$).  
+
+\begin{equation}
+G_t \equiv 1 - (F_t + a_t)
+\end{equation}
+
+Forage potential increases or decreases based on the grazing pressure on the land. If $G_t < 0$, then forage potential increases (subject to a maximum, $\bar{\alpha}$). If $G_t > 0$, then forage potential decreases. For each monthly value in the vector $\alpha_{t}$, the previous years' forage value is multiplied by a percentage that is determined by the grazing pressure and a scaling factor, $x$. The parameter $x$ will be determined by testing the equation for a variety of values. The end goal is to decrease the forage potential by 1-2\% per year when grazing pressure is high, as recommended by the team of ranching experts at the University of Wyoming. 
+
+When there is negative grazing pressure, the forage potential may increase to a maximum of $\bar{\alpha}$ which is determined by the MLRA plant growth curves. The sum of the elements of the $\bar{\alpha}$ vector must equal to 1.
+\begin{equation}
+\alpha_t = \alpha_{t-1} \left(1 - \frac{G_{t-1}}{x}\right)
+\end{equation}
+
+\begin{equation}
+\max \sum_{i=1}^{12} \alpha_{i} = \sum_{i=1}^{12} \bar{\alpha_{i}} = 1 
+\end{equation}
+where $i$ indexes the twelve elements of the vector that represent the forage growth potential for each month.
+
+\subsection{Proofs}
+Proposition: At carrying capacity ($l/\theta_t = K$), without drought ($\tilde{a}_t = 0$), and with full forage potential ($\sum \alpha_t = 1$), $\alpha_t = \alpha_{t-1}$:
+\begin{align*}
+F_t =& \frac{\alpha_t \cdot \rho_t}{\%K} = 1 \\
+G_t =& 1 - F_t = 1-1 = 0 \\
+\alpha_{t+1} =& \alpha_{t} \left(1 - \frac{G_{t-1}}{x}\right) = \alpha_{t}
+\end{align*}
+
+Proposition:  At carrying capacity ($l/\theta_t) = K$), with drought and perfect adaptation ($a_t = \tilde{a}_t  = 1 - F_t$), $\alpha_t = \alpha_{t+1}$:
+\begin{align*}
+F_t <& 1 \\
+G_t =&  1 - (F_t + a_t) = 1 - 1 = 0
+\end{align*}
+
+\section{Dynamic Herd Size}
+Herd size in year $t$ is a function of herd size in the previous year, $\theta_{t-1}$, percentage of cows culled in the previous year, $z_{t-1}$, death rate of cows in the previous year, $d_{t-1}$, herd size two years prior, $\theta_{t-2}$, weaning percentage two years prior, $y_{t-2}$, and percentage of calves sold two years prior, $m_{t-2}$:
+
+\begin{equation}
+\theta_t = \theta_{t-1} (1- d_{t-1}) (1 - z_{t-1}) + \theta_{t-2} y_{t-2} (1 - m_{t-2})
+\end{equation} 
+
+This implicitly assumes that all yearlings survive to become mature cows.
+
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+\section{Model Workflow}
+All functions are run within \verb!master.R! and call additional scripts from the \verb!R! folder.
+
+\subsection{Master Script}
+In \verb!master.R!:
+
+\textbf{SETUP}
+\begin{itemize}  
+    * Get the **station gauge attributes**, and assign them to a sub-environment (`getStationGauge`).
+      * `getStationGauge` branches depending upon whether the target location is the Central Plains Experimental Range (CPER) or another site.
+        * If **CPER** (default):
+          * __Zone Weights__ `zonewt` are read from the *Excel model* which is based on [xx] drought calculator state forage potential weights that we cannot reproduce. We are missing spatial reference information necessary to assign each target location to a state zone.
+          * __Weights Zone__ `stzone` which corresponds to the state weights zone in which CPER resides (Colorado Zone 3).
+          * __Station Gauge__ `stgg`, historical precipitation totals dating back to 1948, which are also read in from the Excel model. Precip totals are collected at CPER itself and do not rely on precip data from COOP sites.
+          *__Target Grid Cell__ `tgrid`, for reading in PRF index values at a given point in time. `tgrid` is assigned to the PRF grid cell where we assume CPER exists, 25002.
+        * If **COOP site** (user-specified):
+          * __Zone Weights__ `zonewt` are based upon the Major Land Resource Area in which the COOP site resides. The MLRA forage potential is an average of plant growth curves calculated for a series of ecological site surveys (ESS) performed for that MLRA (using functions `COOP_in_MRLA` `getMLRAWeights`). Our decision to use an average plant growth curve is a placeholder that could be replaced, for example, by a regression framework like the one used to calculate the state weights. Alternatively, we could contact the authors of the [xx] state weights and use these instead of MLRAs (since these are likely more accurate than the weights used here).
+          * __Weights Zone__ which in this case corresponds to the MLRA site within which the target COOP site resides.
+          * __Station Gauge__ `stgg`, which is read from the historical precipitation data `precip` attached to the target COOP site list `target.coop`.
+          * __Target Grid Cell__ which belongs to the list of COOP site attributes `target.coop`. This variable is computed by converting the coordinates of the COOP site to a SpatialPoint object and finding the underlying PRF grid cell.
+      * Upon completion of the function `getStationGauge`, a new sub-environment `station.gauge` is generated, which contains `zonewt`, `stzone`, `stgg`, and `tgrd` based on the target location.
+    * Get the **model constant variables** by calling `getConstantVars` from the script `R/vars.R`. `getConstantVars` is a wrapper function that assigns variables from an external file, `data/constant_vars.csv`. The file `constant_vars.csv` may be altered to include/omit variables and change their assignments. (*The file `constant_vars.csv` can be thought of as a placeholder i.e. for user input fields in a Shiny app*.)
+
+      * **Constant variables include**:
+
+        * __Drought Action Start Year__ (`act.st.yr`)
+          * *Default: 1* (We assume for now that drought action begins immediately.)
+        * Drought Action Start Month (`act.st.m`)
+          * *Default: 6*
+        * Drought Action End Year (`act.end.yr`)
+          * *Default: 1*
+        * Drought Action End Month (`act.end.m`)
+          * *Default: 12*
+        * Number of pounds of additional hay needed for each cow each day (pounds/head/day; `khaylbs`)
+          *  *Default: 22*
+        * Number of pounds of additional other feed needed for each cow each day (pounds/head/day; `kOthlbs`).
+          *  *Default: 0*
+        * Price per ton of Hay (USD, `p.hay`)
+          * *Default: 100*
+        * Price per ton of Other Feed (USD, `p.oth`)
+          * *Default: 0*
+        * Herd Size (head of cows, does not include calves; `herd`)
+          * *Default: 600*
+        * Distance to Rented Pasture (miles, `n.miles`)
+          * *Default: 300*
+        * Trucking cost per loaded mile ($USD/mile/truck; `truck.cost`)
+          * *Default: 4*
+        * Price of renting pasture per animal unit month, where an animal unit is a cow/calf pair ($USD/pair/month) (`past.rent`)
+          * *Default: 16.49*
+        * All other non-rental, non-trucking costs ($USD; `oth.cost`)
+          * *Default: 300*
+        * Maximum weight per truck (pounds; `max.wt`)
+          * *Default: 40000*
+        * Average cow weight (pounds; `cow.wt`)
+          * *Default: 1200*
+        * Average 'current' weight of calves (pounds; `calf.wt`)
+          * *Default: 375*
+        * Expected weight of calves at weaning (pounds; `normal.wn.wt`)
+          * *Default: 600*
+          * This variable is used as a placeholder weight for years 2-5 when `use.forage` is set to `FALSE` in `getSimVars.R`
+        * Average percentage of calves sold (%; `calf.sell`)
+          * *Default: 0.75*
+        * Average percentage of cows that successfully wean calves (%; `wn.succ`)
+          * *Default: 0.94*
+        * Calf sale price at weaning ($USD/lb; `p.calf.t0`)
+          * *Default: 1.45*
+        * Cow sale price ($USD, `p.cow`)
+          * *Default: 850*
+        * Expenditure per cow ($USD, `cow.cost`)
+          * *Default: 500*
+          * This variable is used to compute the baseline operating cost per year.
+        * Dummy varible for whether insurance is purchased, a value of one indicates insurance presence (`purchase.insurance`)
+          * *Default: 1*
+        * Interest rate on investments (`invst.int`)
+          * *Default: 0.0125*
+        * Capital Tax Rate (`cap.tax.rate`)
+          * *Default: 0.15*
+        * Number of Years in the Model (`t`)
+          * *Default: 5*
+        * Number of cows culled in a normal year (`cull.num`)
+          * *Default: 15*
+          * Used only if assets increase from the previous year, see `CalcCapSalesPurch`
+        * Interest rate for borrowed money (%/year; `loan.int`)
+          * *Default: 0.065*
+        * Change in operating costs in year 1 per cow ($/cow/year). Negative value represents reduced costs ($USD/cow/year; `op.cost.adj`)
+          * *Default: -100*
+        * Operating costs incurred without a herd ($USD/year, `herdless.op.cost`)
+          * *Default: 5000*
+        * Selling cost per cow ($USD; `sell.cost`)
+          * *Default: 20*
+          * NOTE: DO WE COUNT SELLING COSTS IN A NORMAL YEAR? ARE THESE ADDITIONAL?
+        * Cost of replacement per cow ($USD; `replc.cost`)
+          * *Default: 850*
+        * Expected weight of calves at weaning (pounds; `calf.wt`)
+          * *Default: 600*
+          * **REDUNDANT WITH `normal.wn.wt`- FIND WHERE THIS IS USED AND REPLACE IT!!**
+
+  * **GENERATE MODEL INPUTS**
+    * `generateRunParams` is a wrapper that calls the function `getSimVars` in `xx.R` to populate another environment `simvars` with model inputs. We will call this *n* times where *n* is the number of simulation runs.
+      * Currently simulated variables:
+        * **Starting Year**, from a uniform distribution.
+        * **Acreage**, from a normal distribution with mean=3000 and sd=xx, currently not enabled (?)
+        * **Productivity Factor**, from a uniform distribution
+        * **Forage Potential**, default `FALSE`. Not really a simulated variable, but should be set to `TRUE` if using a custom location.
+  * **PARALLELIZE SIMULATION RUNS**
+    * This enables us to perform many model runs faster.
+    * Load required packages for parallelization using `snowfall`.
+      * These *should not* be loaded into the global environment because `snowfall` will not recognize them.
+    * Perform the simulations:
+      1. Save each model run's outputs to a list `parouts`
+      2. Convert `parouts` to a data frame object for summary, plotting, etc.
+    * Save simulation inputs/results:
+      * Input data (`simruns` to `output/simulation_inputs_baseline.RData`)
+      * All results (`parouts` to `simulation_results_baseline.RData`)
+  * **SUMMARY,**
+    * **FILL THIS IN!**
+    
+    
+
+
+
+\end{document}  

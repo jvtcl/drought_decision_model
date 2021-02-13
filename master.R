@@ -1,10 +1,10 @@
 # Copyright (c) 2016 Trisha Shrum, Joseph Tuccillo
-## Authors Comment: This model is jointly developed at the University of 
-#  Colorado Earth Lab based on work by Adam McCurdy, Joseph Tuccillo, Kelly Carney, 
+## Authors Comment: This model is jointly developed at the University of
+#  Colorado Earth Lab based on work by Adam McCurdy, Joseph Tuccillo, Kelly Carney,
 #  Bill Travis, Jeffrey Tranel, Rod Sharp, and John Deering.
 #
 # Description: This script implements a simulation of drought adaptation
-#  decisions by Western cattle ranchers. 
+#  decisions by Western cattle ranchers.
 #
 # Inputs:
 #   ...
@@ -12,233 +12,61 @@
 # Outputs:
 #   ...
 
-# Clear environment
-# prevent from erasing custom location/insurance selection if set
-rm(list=ls()[!ls() %in% c("target.loc","autoSelect.insurance","random.starts","masterRunner","runs")])
+# # Clear environment
+# # prevent from erasing custom location/insurance selection if set
+ rm(list = ls()[!ls() %in% c("target.loc", "autoSelect.insurance",
+                             "random.starts", "masterRunner", "runs")])
 
 # Source functions
-source("R/support_functions.R")
+source("R/load.R")
+source("R/dynamicFunctions.R")
 
-# Source variable assignment script
-source("R/vars.R")
+#### Setup ####
+
+# Populate a new environment with station gauge info.
+# Default location is CPER site
+station.gauge <- getStationGauge()
+
+# Populate a new environment with constant (user) variables
+constvars <- getConstantVars()
 
 
-#### Main Script ####
-
-# Calculate No-Drought Revenues from Calf Sales (aka base sales)
-base.sales <- unlist(lapply(1:t,function(i){
-  CalculateExpSales(herd = herd, calf.sell = calf.sell, wn.wt = expected.wn.wt, p.wn.yr1 = p.wn[i])
-}))
-
-# Calculate No-Drought Operating Costs
-base.op.cost = CalculateBaseOpCosts(herd = herd, cow.cost = cow.cost)
-
-# Compute insurance premiums and indemnities
-if (purchase.insurance==1){
-  rma.ins = insMat(tgrd = tgrd,yyr = yyr,clv = clv,acres = acres,
-                   pfactor = pfactor,insPurchase  =  insp)
-}else{ # if purchase.insurance set to 0 (no insurance), simply set prem/indem = 0
-  rma.ins = cbind(yyr[1]:yyr[1]+(t-1),matrix(0,t,2))
+#### Generate Model Inputs ####
+## I don't like this...a funciton in the run file is inconsistent and a bit klunky 
+## especially if we're trying to change any of the parpameters (random.starts etc)
+## what if we move this get rid of this and have simVars return the appended  list
+## of station.gague, constvars, and simvars..it already has them all so why use two
+## functions.
+generateRunParams <- function(acres.param = 3000){
+  simvars <- getSimVars(
+             station.gauge,         
+             constvars,
+             start_year = 2002, 
+             sim_length = 10,
+             use.forage = T,
+             random.acres=FALSE, 
+             random.productivity=TRUE,
+             acres = acres.param) # with simulated vars
+  return(append(append(station.gauge, constvars), (simvars)))
 }
 
-# Base Values: Indicate average year costs and revenues without insurance
-base.cost <- base.op.cost  # assumes without insurance, cow costs are the only costs for the producer
-base.rev <- base.sales  # assumes that without insurance, calf sales are only revenue. INTEREST MUST BE TAKEN INTO ACCOUNT.  
-base.prof <- base.rev - base.cost
+#### Non-parallel model run ####
+runs <- 1
+simruns <- rlply(runs, generateRunParams(acres.param = 3000))  # list of simulation variables for runs
+list.index <- seq_along(simruns)  # creating an index of the list number to store in the sim_outcomes and match back with the simruns variables
+for (i in 1:runs) {
+  simruns[[i]]$sim.index <- list.index[i] 
+}
 
-base.cost.ins <- base.op.cost + rma.ins[,2] # increment base operating costs with producer premium
-#base.rev.ins <- base.sales + rma.ins[,3] # increment base revenue with indemnity
-#base.prof.ins <- base.rev.ins - base.cost.ins
+##Create a output frame
+simruns <- simruns[[1]]
+outs <- createResultsFrame(simruns)
 
-# Base Cow Assets: No sell/replace
-base.assets.cow <- CalcCowAssets(t = t, herd = herd, p.cow = p.cow)
+##Run simulation
+for(i in 2:nrow(outs)){
+  outs[i,] <- sim_run_single(simruns, station.gauge, 5, 10, 
+                             (simruns$styr + (i-2)), outs[i -1,],
+                             outs[i - ifelse(i == 2, 1, 2)])
+}
 
-c(base.cap.sales, base.cap.purch) := CalcCapSalesPurch(assets.cow = base.assets.cow, 
-                                             t=t, 
-                                             cull.num = cull.num, 
-                                             p.cow = p.cow)
-
-base.cap.taxes <- CalcCapTaxes(cap.sales = base.cap.sales, 
-                          cap.purch = base.cap.purch, 
-                          cap.tax.rate = cap.tax.rate,
-                          herd = herd,
-                          p.cow = p.cow)
-
-####No Drought####
-
-out.nodrght <- OptionOutput(t = t,
-                            opt = "nodrght",
-                            nodrought = TRUE, 
-                            rev.calf = base.sales, 
-                            cost.op = rep(base.op.cost,t), 
-                            rma.ins = rma.ins, 
-                            int.invst = invst.int, 
-                            int.loan = loan.int,
-                            start.cash = 0,
-                            assets.cow = base.assets.cow,
-                            cap.sales = base.cap.sales,
-                            cap.purch = base.cap.purch,
-                            cap.taxes = base.cap.taxes)
-  
-####Drought Occurs####
-# For each option, we calculate the **CHANGE** in costs
-# and the **CHANGE** in revenues relative to the no drought baseline.
-
-# Calculate vector of days of drought adaptation action for each year
-days.act <- CalculateDaysAction(act.st.yr, act.st.m, act.end.yr, act.end.m, drought.action)
-
-## Option 0: No adaptation ##
-# drought revenues
-noadpt.rev.calf <- unlist(lapply(1:t,function(i){
-  CalculateExpSales(herd = herd, calf.sell = calf.sell, wn.wt = wn.wt[i], p.wn.yr1 = p.wn[i])
-}))
-
-out.noadpt <- OptionOutput(t = t,
-                           opt = "noadpt",
-                           rev.calf = noadpt.rev.calf, 
-                           cost.op = rep(base.op.cost,t), 
-                           rma.ins = rma.ins, 
-                           int.invst = invst.int, 
-                           int.loan = loan.int,
-                           start.cash = 0,
-                           assets.cow = base.assets.cow,
-                           cap.sales = base.cap.sales,
-                           cap.purch = base.cap.purch,
-                           cap.taxes = base.cap.taxes)
-
-
-## Option 1: Buy additional feed
-days.feed <- days.act  # Assumes that feeding days are equivalent to drought adaptation action days
-
-# Calculate operating costs including costs to buy feed
-feed.cost <- CalculateFeedCost(kHayLbs, kOthLbs, p.hay, p.oth, days.feed, herd) + base.op.cost
-
-out.feed <- OptionOutput(t = t,
-                         opt = "feed", 
-                         rev.calf = base.sales, 
-                         cost.op = feed.cost, 
-                         rma.ins = rma.ins,
-                         int.invst = invst.int,
-                         int.loan = loan.int,
-                         start.cash = 0,
-                         assets.cow = base.assets.cow,
-                         cap.sales = base.cap.sales,
-                         cap.purch = base.cap.purch,
-                         cap.taxes = base.cap.taxes)
-
-## Option 2: Truck pairs to rented pasture
-days.rent <- days.act # Assumes that pasture rental days are equivalent to drought adaptation action days
-
-# Calculate calf revenues in drought after trucking pairs to rented pasture
-calf.rev.rentpast <- CalculateRentPastRevenue(expected.wn.wt = expected.wn.wt, 
-                                              calf.loss = calf.loss, 
-                                              calf.wt.adj = calf.wt.adj,
-                                              calf.sell = calf.sell, 
-                                              herd = herd, 
-                                              p.wn = p.wn)
-
-# Calculate operating costs to truck pairs to rented pasture. Assumes base operating cost is unchanged.
-cost.op.rentpast <- CalculateRentPastCost(n.miles = n.miles, 
-                                          truck.cost = truck.cost, 
-                                          past.rent = past.rent,
-                                          days.rent = days.rent, 
-                                          oth.cost = oth.cost, 
-                                          max.wt = max.wt,
-                                          cow.wt = cow.wt, 
-                                          calf.wt = calf.wt, 
-                                          herd = herd) + base.op.cost
-
-out.rentpast <- OptionOutput(t = t,
-                             opt = "rentpast",
-                             rev.calf = calf.rev.rentpast, 
-                             cost.op = cost.op.rentpast, 
-                             rma.ins = rma.ins, 
-                             int.invst = invst.int, 
-                             int.loan = loan.int,
-                             start.cash = 0,
-                             assets.cow = base.assets.cow,
-                             cap.sales = base.cap.sales,
-                             cap.purch = base.cap.purch,
-                             cap.taxes = base.cap.taxes)
-
-## Option 3: Sell pairs and replace cows
-
-calf.rev.sellprs <- CalculateSellPrsRev(base.sales = base.sales, 
-                                        herd = herd, 
-                                        wn.succ = wn.succ, 
-                                        calf.wt = calf.wt, 
-                                        p.calf.t0 = p.calf.t0)
-
-cost.op.sellprs <- CalculateSellPrsCost(op.cost.adj = op.cost.adj, 
-                                        herd = herd, 
-                                        sell.cost = sell.cost, 
-                                        base.op.cost = base.op.cost, 
-                                        herdless.op.cost = herdless.op.cost)
-
-assets.cow.sellprs <- CalcCowAssets(herd = herd, 
-                            p.cow = p.cow, 
-                            sell.year = 1, 
-                            replace.year = 3)
-
-c(cap.sales, cap.purch) := CalcCapSalesPurch(assets.cow = assets.cow.sellprs, 
-                                             t=t, 
-                                             cull.num = cull.num, 
-                                             p.cow = p.cow)
-
-cap.taxes <- CalcCapTaxes(cap.sales = cap.sales, 
-                          cap.purch = cap.purch, 
-                          cap.tax.rate = cap.tax.rate,
-                          herd = herd,
-                          p.cow = p.cow)
-
-out.sellprs <- OptionOutput(t = t,
-                            opt = "sellprs",
-                            rev.calf = calf.rev.sellprs, 
-                            cost.op = cost.op.sellprs, 
-                            rma.ins = rma.ins, 
-                            int.invst = invst.int, 
-                            int.loan = loan.int,
-                            start.cash = 0,
-                            assets.cow = assets.cow.sellprs,
-                            cap.sales = cap.sales,
-                            cap.purch = cap.purch,
-                            cap.taxes = cap.taxes)
-
-## Option 4: Sell pairs and don't replace
-
-calf.rev.sellprs.norepl <- c(calf.rev.sellprs[1],rep(0,(t-1)))
-
-cost.op.sellprs.norepl <- c(cost.op.sellprs[1],rep(herdless.op.cost,(t-1)))
-
-assets.cow.sellprs.norepl <- CalcCowAssets(t = t, 
-                            herd = herd, 
-                            p.cow = p.cow, 
-                            sell.year = 1)
-
-c(cap.sales, cap.purch) := CalcCapSalesPurch(assets.cow = assets.cow.sellprs.norepl, 
-                                             t=t, 
-                                             cull.num = cull.num, 
-                                             p.cow = p.cow)
-
-cap.taxes <- CalcCapTaxes(cap.sales = cap.sales, 
-                          cap.purch = cap.purch, 
-                          cap.tax.rate = cap.tax.rate,
-                          herd = herd,
-                          p.cow = p.cow)
-
-out.sellprs.norepl <- OptionOutput(t = t,
-                                   opt = "sellprs.norepl",
-                                   rev.calf = calf.rev.sellprs.norepl, 
-                                   cost.op = cost.op.sellprs.norepl, 
-                                   rma.ins = rma.ins, 
-                                   int.invst = invst.int, 
-                                   int.loan = loan.int,
-                                   start.cash = 0,
-                                   assets.cow = assets.cow.sellprs.norepl,
-                                   cap.sales = cap.sales,
-                                   cap.purch = cap.purch,
-                                   cap.taxes = cap.taxes)
-
-## Bringing outcome df's from each option together
-outcomes <- rbind(out.nodrght, out.noadpt, out.feed, out.rentpast, out.sellprs, out.sellprs.norepl)
 

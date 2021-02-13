@@ -4,3 +4,12 @@
 .Ruserdata
 data/noaaIndex.RData
 R/scratchpad.R
+misc/demo_sim_100.RData
+.DS_Store
+drought_decision_model_NEW.Rproj
+server_BACKUP_9708.R
+server_BASE_9708.R
+server_LOCAL_9708.R
+server_REMOTE_9708.R
+.httr-oauth
+*.dcf
